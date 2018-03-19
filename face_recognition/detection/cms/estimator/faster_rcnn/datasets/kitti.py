@@ -29,7 +29,7 @@ class kitti(imdb):
         self._data_path = os.path.join(self._kitti_path, 'data_object_image_2')
         self._classes = ('__background__', 'Car', 'Pedestrian', 'Cyclist')
         self._class_to_ind = dict(list(zip(self.classes, list(range(self.num_classes)))))
-        self._image_ext = '.test_images'
+        self._image_ext = '.png'
         self._image_index = self._load_image_set_index_new()
         # Default to roidb handler
         if cfg.IS_RPN:
@@ -100,7 +100,7 @@ class kitti(imdb):
                 'Path does not exist: {}'.format(image_set_file)
 
         image_index = os.listdir(image_set_file)
-        image_set_file = image_set_file + '*.test_images'
+        image_set_file = image_set_file + '*.png'
         image_index = glob.glob(image_set_file)
 
         return image_index

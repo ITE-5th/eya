@@ -5,19 +5,18 @@ import cv2
 import dlib
 import openface
 
-from face_recognition.recognition.preprocessing.preprocessor import Preprocessor
 from file_path_manager import FilePathManager
+from recognition.preprocessing.preprocessor import Preprocessor
 
 
 class AlignerPreprocessor(Preprocessor):
-    path_to_landmark_model = FilePathManager.resolve("face_recognition//data/shape_predictor_68_face_landmarks.dat")
-    path_to_cnn_model = FilePathManager.resolve("face_recognition/data/mmod_human_face_detector.dat")
-    detector = dlib.cnn_face_detection_model_v1(path_to_cnn_model)
-    predictor = dlib.shape_predictor(path_to_landmark_model)
-    aligner = openface.AlignDlib(path_to_landmark_model)
+    path_to_landmarks_model = FilePathManager.resolve("face_recognition/data/shape_predictor_68_face_landmarks.dat")
+    detector = dlib.cnn_face_detection_model_v1(
+        FilePathManager.resolve("face_recognition/data/mmod_human_face_detector.dat"))
+    predictor = dlib.shape_predictor(path_to_landmarks_model)
+    aligner = openface.AlignDlib(path_to_landmarks_model)
 
-    def __init__(self, scale: int = 1, size=200):
-        self.lfw = None
+    def __init__(self, scale: int = 1, size=224):
         self.scale = scale
         self.size = size
 
@@ -28,12 +27,10 @@ class AlignerPreprocessor(Preprocessor):
             rect = item.rect
             aligned = AlignerPreprocessor.aligner.align(self.size, image, rect,
                                                         landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
-            cv2.imwrite(FilePathManager.resolve("test.jpg"), aligned)
             result.append((aligned, rect))
         return result
 
-    def preprocess_faces(self, faces, lfw: bool = False):
-        self.lfw = lfw
+    def preprocess_faces(self, faces):
         for face in faces:
             self.process_face(face)
 
@@ -45,7 +42,7 @@ class AlignerPreprocessor(Preprocessor):
         return temp
 
     def process_face(self, face):
-        ind = face.index("lfw" if self.lfw else "custom_images") + (len("lfw") if self.lfw else len("custom_images"))
+        ind = face.index("custom_images") + (len("custom_images"))
         try:
             aligned = self.preprocess_face(face)
             temp = face[:ind] + "2" + face[ind:]

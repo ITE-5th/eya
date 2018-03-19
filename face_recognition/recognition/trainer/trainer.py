@@ -6,24 +6,24 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from xgboost.sklearn import XGBClassifier
 
 from file_path_manager import FilePathManager
-from face_recognition.recognition.dataset.image_feature_extractor import ImageFeatureExtractor
-from face_recognition.recognition.estimator.evm import EVM
+from recognition.dataset.image_feature_extractor import ImageFeatureExtractor
+from recognition.estimator.evm import EVM
 
 if __name__ == '__main__':
-    root_path = FilePathManager.resolve("face_recognition/data")
-    just_train = False
+    root_path = FilePathManager.resolve("data")
+    just_train = True
     features = ImageFeatureExtractor.load(root_path)
     X, y = zip(*features)
     X, y = np.array([x.float().numpy() for x in X]), np.array(y)
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=40)
     type = "evm"
     estimator, params = None, {}
     if type == "evm":
         estimator = EVM()
         params = {
-            "tail": range(7, 9),
-            "open_set_threshold": [0.4, 0.5],
-            "biased_distance": [0.5, 0.6]
+            "tail": range(7, 15),
+            "open_set_threshold": [0.2, 0.3, 0.4, 0.5],
+            "biased_distance": [0.5, 0.6, 0.7]
         }
     elif type == "forest":
         estimator = RandomForestClassifier()
@@ -45,5 +45,6 @@ if __name__ == '__main__':
     predicted = best_estimator.predict(X_test)
     accuracy = (predicted == y_test).sum() * 100 / X_test.shape[0]
     print("best accuracy = {}".format(accuracy))
+    best_estimator.fit(X, y)
     path = FilePathManager.resolve(f"face_recognition/recognition/models/{type}.model")
     joblib.dump(best_estimator, path)

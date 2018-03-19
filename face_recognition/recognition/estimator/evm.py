@@ -1,5 +1,4 @@
 import libmr
-from multiprocessing import Pool, cpu_count
 
 import numpy as np
 # from numba import float_, int_, bool_
@@ -31,7 +30,8 @@ class EVM(BaseEstimator):
                  open_set_threshold: float = 0.5,
                  biased_distance: float = 0.5,
                  k: int = 5,
-                 redundancy_rate: float = 0):
+                 redundancy_rate: float = 0,
+                 use_gpu=False):
         self.tail = tail
         self.biased_distance = biased_distance
         self.classes = {}
@@ -39,6 +39,7 @@ class EVM(BaseEstimator):
         self.open_set_threshold = open_set_threshold
         self.k = k
         self.redundancy_rate = redundancy_rate
+        self.use_gpu = use_gpu
 
     def fit(self, X, y):
         classes = np.unique(y)
@@ -52,11 +53,9 @@ class EVM(BaseEstimator):
 
     def fit_new_data(self, X, y):
         values = np.unique(y)
-        classes = {}
         for val in values:
-            classes[val] = X[y == val]
-            if val in self.classes.keys():
-                pass
+            self.classes[val] = X[y == val]
+        self._infer_classes(values)
 
     def _infer(self):
         self._infer_classes(list(self.classes.keys()))
@@ -143,10 +142,8 @@ class EVM(BaseEstimator):
         return prop, class_index
 
     def _reduce(self):
-        with Pool(cpu_count()) as p:
-            p.map(self._reduce_class, self.classes.keys())
-            p.close()
-            p.join()
+        for i in self.classes.keys():
+            self._reduce_class(i)
 
     def _reduce_class(self, class_index):
         clz, dist = self.classes[class_index], self.dists[class_index]

@@ -16,6 +16,6 @@ class FaceRecognitionModel:
 
 if __name__ == '__main__':
     face_model = FaceRecognitionModel()
-    path = FilePathManager.resolve("face_recognition/test_images/image_3.jpg")
+    path = FilePathManager.resolve("face_recognition/test_images/david-cameron.jpg")
     image = cv2.imread(path)
     print(face_model.predict(image))
