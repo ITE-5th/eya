@@ -43,19 +43,11 @@ class EVM(BaseEstimator):
 
     def fit(self, X, y):
         classes = np.unique(y)
-        self.classes = dict()
-        self.dists = dict()
         for clz in classes:
             self.classes[clz] = X[y == clz]
-        self._infer()
+        self._infer_classes(classes)
         if self.redundancy_rate > 0:
             self._reduce()
-
-    def fit_new_data(self, X, y):
-        values = np.unique(y)
-        for val in values:
-            self.classes[val] = X[y == val]
-        self._infer_classes(values)
 
     def _infer(self):
         self._infer_classes(list(self.classes.keys()))
@@ -173,7 +165,6 @@ class EVM(BaseEstimator):
 
 if __name__ == '__main__':
     X, y = load_digits(return_X_y=True)
-    # X, y = load_breast_cancer(return_X_y=True)
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     print("number of training samples = {}, obviously choosing a small tail will yield a very bad result".format(
         X_train.shape[0]))
@@ -185,3 +176,5 @@ if __name__ == '__main__':
     predicted = best_estimator.predict(X_test)
     accuracy = (predicted == y_test).sum() * 100 / X_test.shape[0]
     print("best accuracy = {}".format(accuracy))
+
+
