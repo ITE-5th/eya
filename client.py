@@ -15,7 +15,7 @@ from rp_client.recognizer import Recognizer
 
 
 class ClientAPI:
-    def __init__(self, speaker_name, host=socket.gethostname(), port=1231):
+    def __init__(self, speaker_name, host=socket.gethostname(), port=8888):
         self.host = host
         self.port = port
         self.speaker_name = speaker_name
