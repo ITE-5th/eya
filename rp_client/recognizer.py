@@ -14,6 +14,7 @@ class Recognizer:
                 './rp_client/resources/models/caption.pmdl',
                 './rp_client/resources/models/snowboy.umdl',
                 './rp_client/resources/models/alexa_02092017.umdl',
+                './rp_client/resources/models/smart_mirror.umdl'
             ]
 
         model = pmdl_path
@@ -30,23 +31,30 @@ class Recognizer:
         callbacks = [lambda: [snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(data_id='caption')
+                         callback_function(data_id='face-recognition')
+                     ],
+                     lambda: [
+                         snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
+                         callback_function(data_id='image-to-text')
                      ],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
                          callback_function(data_id='ocr')
                      ],
+                     # set-last-person
                      lambda: [
-                         snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(data_id='face')
+                         snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING),
                      ],
+                     # remove-person
                      lambda: [
-                         snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(data_id='capture_face')
+                         snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING),
                      ]
                      ]
 
-        acallbacks = [lambda fname: callback_function(fname, data_id='vqa'), None, None, None, None]
+        acallbacks = [lambda fname: callback_function(fname, data_id='visual-question-answering'), None, None, None,
+                      lambda fname: callback_function(fname, data_id='set-last-person'),
+                      lambda fname: callback_function(fname, data_id='remove-person'),
+                      ]
 
         self.detector.start(detected_callback=callbacks,
                             audio_recorder_callback=acallbacks,
