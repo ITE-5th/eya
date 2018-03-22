@@ -2,10 +2,13 @@ import base64
 
 import picamera
 
+pi_camera = picamera.PiCamera()
+
 
 class Camera:
+
     def __init__(self, width=800, height=600, vflip=True, hflip=True):
-        self.camera = picamera.PiCamera()
+        self.camera = pi_camera
         self.camera.vflip = vflip
         self.camera.hflip = hflip
         self.camera.resolution = (width, height)
