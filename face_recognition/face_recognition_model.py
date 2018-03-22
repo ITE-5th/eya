@@ -5,17 +5,20 @@ from file_path_manager import FilePathManager
 
 
 class FaceRecognitionModel:
-    def __init__(self):
-        self.predictor = EvmPredictor(FilePathManager.resolve("face_recognition/recognition/models/evm.model"))
+    def __init__(self, user_name):
+        try:
+            self.model_path = FilePathManager.resolve(f"face_recognition/recognition/models/{user_name}/model.model")
+            self.predictor = EvmPredictor(self.model_path)
+        except Exception:
+            raise FileNotFoundError("The model was not found")
+
+    def add_person(self, person_name, images):
+        self.predictor.add_person(person_name, images)
+
+    def remove_person(self, person_name):
+        self.predictor.remove_person(person_name)
 
     def predict(self, face):
         temp = self.predictor.predict_from_image(face)
         temp = [x[0] for x in temp]
         return ",".join(temp)
-
-
-if __name__ == '__main__':
-    face_model = FaceRecognitionModel()
-    path = FilePathManager.resolve("face_recognition/test_images/david-cameron.jpg")
-    image = cv2.imread(path)
-    print(face_model.predict(image))

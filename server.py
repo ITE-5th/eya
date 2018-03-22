@@ -2,10 +2,12 @@ import base64
 import os
 import socket
 import threading
-import numpy as np
+
 import cv2
+import numpy as np
 
 from face_recognition.face_recognition_model import FaceRecognitionModel
+from file_path_manager import FilePathManager
 from helper import Helper
 from image_to_text.build_vocab import Vocabulary
 from image_to_text.image_to_text_model import ImageToTextModel
@@ -22,37 +24,77 @@ class Server:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((host, port))
         self.socket.listen(5)
-        self.face_recognition = FaceRecognitionModel()
         self.image_to_text = ImageToTextModel()
         self.vqa = VqaModel()
         self.client_socket, self.address = None, None
 
     def handle_client_connection(self, client_socket):
+        face_recognition = None
+        number_of_faces = 10
         while True:
             message = Helper.receive_json(client_socket)
             if message != '':
-                img_data, question, type = self.get_data(message)
-                nparr = np.fromstring(base64.decodebytes(img_data.encode()), np.uint8)
-                image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-                result = {"result": question}
-                if type == "visual-question-answering":
-                    result["result"] = self.vqa.predict(question, image)
+                img_data, question, type, name = Server.get_data(message)
+                result = {"result": "error"}
+                # Face Recognition
+                if type == "register-face-recognition":
+                    path = FilePathManager.resolve("face_recognition/recognition/models")
+                    person_path = f"{path}/{name}"
+                    os.makedirs(person_path)
+                elif type == "start-face-recognition":
+                    try:
+                        face_recognition = FaceRecognitionModel(name)
+                        result["result"] = "success"
+                    except FileNotFoundError:
+                        result["result"] = "error"
                 elif type == "face-recognition":
-                    result["result"] = self.face_recognition.predict(image)
+                    if face_recognition is not None:
+                        result["result"] = face_recognition.predict(image)
+                    else:
+                        result["result"] = "error"
+                elif type == "add-person":
+                    if face_recognition is not None:
+                        images = []
+                        for i in range(number_of_faces):
+                            image, _, _, _ = Server.get_data(message)
+                            images.append(image)
+                        face_recognition.add_person(name, images)
+                        result["result"] = "success"
+                    else:
+                        result["result"] = "error"
+                elif type == "remove-person":
+                    if face_recognition is not None:
+                        face_recognition.remove_person(name)
+                        result["result"] = "success"
+                    else:
+                        result["result"] = "error"
+
+                # Visual Question Answering
+                elif type == "visual-question-answering":
+                    result["result"] = self.vqa.predict(question, image)
+
+                # Image To Text
                 elif type == "image-to-text":
                     result["result"] = self.image_to_text.predict(image)
                 Helper.send_json(client_socket, result)
 
-    def get_data(self, message):
-        type = ''
-        img_data = ''
-        question = ''
-        try:
-            type = message['type'].lower()
-            img_data = message["image"]
-            question = message["question"]
-        finally:
-            return img_data, question, type
+    @staticmethod
+    def get_data(message):
+        image = Server.get(message, "image")
+        return Server.to_image(image) if image is not None else None, Server.get(message, "question"), Server.get(
+            message,
+            "type"), Server.get(
+            message,
+            "name")
+
+    @staticmethod
+    def get(message, attr):
+        return message[attr] if attr in message else None
+
+    @staticmethod
+    def to_image(img_data):
+        nparr = np.fromstring(base64.decodebytes(img_data.encode()), np.uint8)
+        return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     def start(self):
         print('server started at {}:{}'.format(self.host, str(self.port)))
