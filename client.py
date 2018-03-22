@@ -1,5 +1,8 @@
 import socket
+import threading
+import time
 
+import RPi.GPIO as GPIO
 import speech_recognition as sr
 
 # from rp_client.speaker import Speaker
@@ -21,27 +24,52 @@ class ClientAPI:
         self.recognizer = Recognizer(server=self)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+    def handle_capture_button(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        try:
+            while True:
+                button_state = GPIO.input(23)
+                if not button_state:
+                    print('Button Pressed...')
+                    self.data_callback(data_id='capture')
+                    time.sleep(1)
+        except:
+            GPIO.cleanup()
+
     def start(self):
 
         self.socket.connect((self.host, self.port))
         print('connected to server ' + self.host + ':' + str(self.port))
+        capture_handler = threading.Thread(
+            target=self.handle_capture_button,
+        )
+        capture_handler.start()
         #     start recogniser
-        self.recognizer.start(self.audio_recorder_callback)
+        self.recognizer.start(self.data_callback)
 
-    def audio_recorder_callback(self, fname=None, hotword_id=None):
+    def data_callback(self, fname=None, data_id=None):
+        """
+        data_callback is called when capture button is pressed
+        or when hot-word detected
+        :param fname: is recorded audio path after hot-word is detected
+                    'currently contains question audio File else None'
+        :param data_id: callback message type
+        """
         message = None
-        if hotword_id == 'vqa':
+        if data_id == 'vqa':
             # verify speaker
             threshold = 0.5
             if self.get_speaker(fname) > threshold:
                 print("converting audio to text")
                 speech = self.speech_to_text(fname)
-                message = self._build_message(hotword_id, question=speech)
+                message = self._build_message(data_id, question=speech)
                 # os.remove(fname)
             else:
                 print('speaker is not verified')
         else:
-            message = self._build_message(hotword_id)
+            message = self._build_message(data_id)
 
         if message is not None:
             self.communicate_with_server(message)
@@ -89,16 +117,13 @@ class ClientAPI:
         self.tts.say(response['result'])
 
     def _build_message(self, type, question=None):
-        # type == "visual-question-answering"
-        # type == "face-recognition"
-        # type == "image-to-text"
-        if (type == 'capture_face'):
-            image_file = self.cam.take_image(face_count=1)
 
-            if (image_file == -1):
+        if type == 'capture':
+            image_file = self.cam.take_image(face_count=1)
+            if image_file == -1:
                 print('Sorry,Please Take a new Image.')
                 self.tts.say('Sorry  Please Take a new Image.')
-                return None;
+                return None
         else:
             image_file = self.cam.take_image()
         json_data = {

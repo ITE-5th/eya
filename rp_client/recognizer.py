@@ -30,23 +30,23 @@ class Recognizer:
         callbacks = [lambda: [snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(hotword_id='caption')
+                         callback_function(data_id='caption')
                      ],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(hotword_id='ocr')
+                         callback_function(data_id='ocr')
                      ],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(hotword_id='face')
+                         callback_function(data_id='face')
                      ],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
-                         callback_function(hotword_id='capture_face')
+                         callback_function(data_id='capture_face')
                      ]
                      ]
 
-        acallbacks = [lambda fname: callback_function(fname, hotword_id='vqa'), None, None, None, None]
+        acallbacks = [lambda fname: callback_function(fname, data_id='vqa'), None, None, None, None]
 
         self.detector.start(detected_callback=callbacks,
                             audio_recorder_callback=acallbacks,
