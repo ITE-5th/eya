@@ -9,11 +9,11 @@ class Recognizer:
     def __init__(self, pmdl_path=None, sensitivity=0.38, sphinx=True, google=True, server=None):
         if pmdl_path is None:
             pmdl_path = [
-                './client/resources/models/question.pmdl',
-                './client/resources/models/face.pmdl',
-                './client/resources/models/caption.pmdl',
-                './client/resources/models/snowboy.umdl',
-                './client/resources/models/alexa_02092017.umdl',
+                './rp_client/resources/models/question.pmdl',
+                './rp_client/resources/models/face.pmdl',
+                './rp_client/resources/models/caption.pmdl',
+                './rp_client/resources/models/snowboy.umdl',
+                './rp_client/resources/models/alexa_02092017.umdl',
             ]
 
         model = pmdl_path
