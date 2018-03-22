@@ -2,6 +2,7 @@ import base64
 import os
 import socket
 import threading
+from shutil import copy2
 
 import cv2
 import numpy as np
@@ -39,8 +40,12 @@ class Server:
                 # Face Recognition
                 if type == "register-face-recognition":
                     path = FilePathManager.resolve("face_recognition/recognition/models")
+                    base_model_path = f"{path}/base_model.model"
                     person_path = f"{path}/{name}"
                     os.makedirs(person_path)
+                    model_path = f"{person_path}/model.model"
+                    copy2(base_model_path, model_path)
+                    result["result"] = "success"
                 elif type == "start-face-recognition":
                     try:
                         face_recognition = FaceRecognitionModel(name)
