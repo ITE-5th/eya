@@ -21,7 +21,7 @@ class ClientAPI:
         self.speaker_name = speaker_name
         self.cam = Camera()
         self.tts = TTS(festival=False, espeak=False, pico=True)
-        self.recognizer = Recognizer(server=self)
+        self.recognizer = Recognizer(server=self, callback_function=self.data_callback)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.last_person = None
 
@@ -59,7 +59,7 @@ class ClientAPI:
             )
             capture_handler.start()
             #     start recogniser
-            self.recognizer.start(self.data_callback)
+            self.recognizer.start()
         finally:
             print('closing camera')
             self.cam.close()
