@@ -38,11 +38,14 @@ class Server:
                 print(message)
                 if message != '':
                     image, question, type, name = Server.get_data(message)
+                    if name is not None:
+                        name = name.lower().replace(" ", "_")
                     result = {
                         "result": "error",
                     }
                     if type == 'close':
                         break
+
                     # Face Recognition
                     elif type == "register-face-recognition":
                         path = FilePathManager.resolve("face_recognition/recognition/models")
