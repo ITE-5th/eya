@@ -49,7 +49,7 @@ class Client:
         if type != "face-recognition":
             file_path = FilePathManager.resolve("vqa/test_images/girl_with_umbrella.jpg")
         else:
-            file_path = FilePathManager.resolve("face_recognition/test_images/angelina-brad.jpg")
+            file_path = FilePathManager.resolve("face_recognition/test_images/zaher.jpg")
         with open(file_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
         json_data = {"type": type, "image": encoded_string, "question": question}
