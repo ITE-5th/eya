@@ -37,7 +37,7 @@ class Server:
                 message = Helper.receive_json(client_socket)
                 print(message)
                 if message != '':
-                    img_data, question, type, name = Server.get_data(message)
+                    image, question, type, name = Server.get_data(message)
                     result = {
                         "result": "error",
                     }

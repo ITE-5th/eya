@@ -19,11 +19,11 @@ def remove_net(state):
 def vgg_extractor(siamese: bool = False):
     extractor = vgg_face
     if not siamese:
-        state = torch.load(FilePathManager.resolve('data/VGG_FACE.pth'))
+        state = torch.load(FilePathManager.resolve('face_recognition/data/VGG_FACE.pth'))
         extractor.load_state_dict(state)
         extractor = nn.Sequential(*list(extractor.children())[:-7])
     else:
-        state = torch.load(FilePathManager.resolve('data/VGG_FACE_MODIFIED.pth.tar'))
+        state = torch.load(FilePathManager.resolve('face_recognition/data/VGG_FACE_MODIFIED.pth.tar'))
         extractor = nn.Sequential(*list(extractor.children())[:-1])
         state = state["state_dict"]
         state = remove_net(state)
@@ -37,7 +37,7 @@ def vgg_extractor(siamese: bool = False):
 
 if __name__ == '__main__':
     extractor = vgg_extractor()
-    image = cv2.imread(FilePathManager.resolve("test_images/image_1.jpg"))
+    image = cv2.imread(FilePathManager.resolve("face_recognition/test_images/image_1.jpg"))
     image = cv2.resize(image, (200, 200))
     image = cv2torch(image).float()
     image = image.unsqueeze(0)
