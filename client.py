@@ -13,6 +13,8 @@ from rp_client.camera import Camera
 from rp_client.ocr import OCR
 from rp_client.recognizer import Recognizer
 
+Running = True
+
 
 class ClientAPI:
     def __init__(self, speaker_name, host=socket.gethostname(), port=8888):
@@ -26,11 +28,12 @@ class ClientAPI:
         self.last_person = None
 
     def handle_capture_button(self):
+        global Running
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         try:
             images = 0
-            while True:
+            while Running:
                 button_state = GPIO.input(23)
                 if not button_state:
                     if self.last_person is None:
@@ -49,7 +52,7 @@ class ClientAPI:
             GPIO.cleanup()
 
     def start(self):
-
+        global Running
         try:
             self.socket.connect((self.host, self.port))
             print('connected to server ' + self.host + ':' + str(self.port))
@@ -61,6 +64,7 @@ class ClientAPI:
             #     start recogniser
             self.recognizer.start()
         finally:
+            Running = False
             print('closing camera')
             self.cam.close()
             Helper.send_json(self.socket, {'type': 'close'})

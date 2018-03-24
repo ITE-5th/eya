@@ -3,6 +3,7 @@ import signal
 from rp_client import snowboydecoder
 
 interrupted = False
+Running = True
 
 
 class Recognizer:
@@ -36,6 +37,7 @@ class Recognizer:
         self.callback_function = callback_function
 
     def start(self):
+        global Running
         callbacks = [lambda: [snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
@@ -84,10 +86,11 @@ class Recognizer:
         ]
 
         # main loop
-        while True:
+        while Running:
             print('\033[93m' + 'Listening... ' + '\033[0m')
 
-            self.start_detector.start(detected_callback=[lambda: self.start_detected_callback()],
+            self.start_detector.start(detected_callback=[
+                lambda: [self.start_detected_callback(), snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)]],
                                       interrupt_check=self.interrupt_start_callback,
                                       sleep_time=0.01)
 
@@ -103,20 +106,21 @@ class Recognizer:
         self.set_interrupted(value=True)
 
     def signal_handler(self, signal, frame):
-        global interrupted
-        interrupted = True
+        global Running
+        print(Running)
+        Running = False
 
     def set_interrupted(self, value=None):
         global interrupted
         interrupted = not interrupted if value is None else value
 
     def interrupt_callback(self):
-        global interrupted
-        return not interrupted
+        global interrupted, Running
+        return not Running or not interrupted
 
     def interrupt_start_callback(self):
-        global interrupted
-        return interrupted
+        global interrupted, Running
+        return not Running or interrupted
 
 
 if __name__ == '__main__':
