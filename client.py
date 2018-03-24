@@ -1,3 +1,4 @@
+import configparser
 import socket
 import threading
 import time
@@ -17,7 +18,7 @@ Running = True
 
 
 class ClientAPI:
-    def __init__(self, speaker_name, host=socket.gethostname(), port=8888):
+    def __init__(self, speaker_name, host=socket.gethostname(), port=8888, configFilePath=r'./config.ini'):
         self.host = host
         self.port = port
         self.speaker_name = speaker_name
@@ -26,6 +27,8 @@ class ClientAPI:
         self.recognizer = Recognizer(server=self, callback_function=self.data_callback)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.last_person = None
+        self.configParser = configparser.RawConfigParser()
+        self.configParser.read(configFilePath)
 
     def handle_capture_button(self):
         global Running
@@ -56,7 +59,9 @@ class ClientAPI:
         try:
             self.socket.connect((self.host, self.port))
             print('connected to server ' + self.host + ':' + str(self.port))
-            self.data_callback(data_id='register-face-recognition')
+            if self.configParser.get('user-data', 'u_name') != self.speaker_name:
+                self.data_callback(data_id='register-face-recognition')
+
             capture_handler = threading.Thread(
                 target=self.handle_capture_button,
             )
@@ -75,6 +80,7 @@ class ClientAPI:
         """
         data_callback is called when capture button is pressed
         or when hot-word detected
+
         :param fname: is recorded audio path after hot-word is detected
                     'currently contains question audio File else None'
         :param data_id: callback message type
@@ -142,6 +148,13 @@ class ClientAPI:
         else:
             Helper.send_json(self.socket, message)
             response = Helper.receive_json(self.socket)
+
+        if 'registered' in response:
+            print('registering')
+            self.configParser.set('user-data', 'u_name', self.speaker_name)
+            with open('config.ini', 'w') as f:
+                self.configParser.write(f)
+
         print(response)
         self.tts.say(response['result'])
 
