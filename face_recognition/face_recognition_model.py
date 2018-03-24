@@ -1,5 +1,3 @@
-import cv2
-
 from face_recognition.recognition.predictor.evm_predictor import EvmPredictor
 from file_path_manager import FilePathManager
 

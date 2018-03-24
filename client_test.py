@@ -1,6 +1,8 @@
 import base64
 import socket
 
+import time
+
 from file_path_manager import FilePathManager
 from helper import Helper
 
@@ -15,8 +17,8 @@ class Client:
         print('connected to server ' + self.host + ':' + str(self.port))
         self.socket.connect((self.host, self.port))
         json_data = {
-            "type" : "register-face-recognition",
-            "name" : "Obada Jabassini"
+            "type": "register-face-recognition",
+            "name": "Obada Jabassini"
         }
         self.communicate_with_server(json_data)
         json_data = {
@@ -29,9 +31,9 @@ class Client:
             if i % 3 == 0:
                 message = self._build_message("image-to-text")
             elif i % 3 == 1:
-                message = self._build_message("face-recognition")
-            else:
                 message = self._build_message("visual-question-answering", "what is the color of the umbrella?")
+            else:
+                message = self._build_message("face-recognition")
             self.communicate_with_server(message)
             i += 1
 
@@ -47,7 +49,7 @@ class Client:
         if type != "face-recognition":
             file_path = FilePathManager.resolve("vqa/test_images/girl_with_umbrella.jpg")
         else:
-            file_path = FilePathManager.resolve("face_recognition/test_images/david-cameron.jpg")
+            file_path = FilePathManager.resolve("face_recognition/test_images/angelina-brad.jpg")
         with open(file_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
         json_data = {"type": type, "image": encoded_string, "question": question}

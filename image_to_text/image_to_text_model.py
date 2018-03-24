@@ -25,11 +25,14 @@ class ImageToTextModel:
                              512,
                              len(self.vocab),
                              1)
-
         encoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/encoder-5-3000.pkl")))
         decoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/decoder-5-3000.pkl")))
         encoder = encoder.cuda()
         decoder = decoder.cuda()
+        for param in encoder.parameters():
+            param.requires_grad = False
+        for param in decoder.parameters():
+            param.requires_grad = False
         self.encoder = encoder
         self.decoder = decoder
 

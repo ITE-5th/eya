@@ -16,28 +16,30 @@ def remove_net(state):
     return new_state
 
 
+extractor = vgg_face
+# if not siamese:
+state = torch.load(FilePathManager.resolve('face_recognition/data/VGG_FACE.pth'))
+extractor.load_state_dict(state)
+extractor = nn.Sequential(*list(extractor.children())[:-7])
+# else:
+#     state = torch.load(FilePathManager.resolve('data/VGG_FACE_MODIFIED.pth.tar'))
+#     extractor = nn.Sequential(*list(extractor.children())[:-1])
+#     state = state["state_dict"]
+#     state = remove_net(state)
+#     extractor.load_state_dict(state)
+for param in extractor.parameters():
+    param.requires_grad = False
+extractor.eval()
+extractor = extractor.cuda()
+
+
 def vgg_extractor(siamese: bool = False):
-    extractor = vgg_face
-    if not siamese:
-        state = torch.load(FilePathManager.resolve('face_recognition/data/VGG_FACE.pth'))
-        extractor.load_state_dict(state)
-        extractor = nn.Sequential(*list(extractor.children())[:-7])
-    else:
-        state = torch.load(FilePathManager.resolve('face_recognition/data/VGG_FACE_MODIFIED.pth.tar'))
-        extractor = nn.Sequential(*list(extractor.children())[:-1])
-        state = state["state_dict"]
-        state = remove_net(state)
-        extractor.load_state_dict(state)
-    for param in extractor.parameters():
-        param.requires_grad = False
-    extractor.eval()
-    extractor = extractor.cuda()
     return extractor
 
 
 if __name__ == '__main__':
     extractor = vgg_extractor()
-    image = cv2.imread(FilePathManager.resolve("face_recognition/test_images/image_1.jpg"))
+    image = cv2.imread(FilePathManager.resolve("test_images/image_1.jpg"))
     image = cv2.resize(image, (200, 200))
     image = cv2torch(image).float()
     image = image.unsqueeze(0)

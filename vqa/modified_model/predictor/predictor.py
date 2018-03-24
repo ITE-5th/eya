@@ -35,6 +35,8 @@ for path in paths:
     net.eval()
     net = DataParallel(net)
     net = net.cuda()
+    for param in net.parameters():
+        param.requires_grad = False
     models.append(net)
 
 
