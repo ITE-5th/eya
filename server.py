@@ -32,65 +32,75 @@ class Server:
     def handle_client_connection(self, client_socket):
         face_recognition = None
         number_of_faces = 10
-        while True:
-            message = Helper.receive_json(client_socket)
-            if message != '':
-                img_data, question, type, name = Server.get_data(message)
-                result = {"result": "error"}
-                # Face Recognition
-                if type == "register-face-recognition":
-                    path = FilePathManager.resolve("face_recognition/recognition/models")
-                    base_model_path = f"{path}/base_model.model"
-                    person_path = f"{path}/{name}"
-                    os.makedirs(person_path)
-                    model_path = f"{person_path}/model.model"
-                    copy2(base_model_path, model_path)
-                    result["result"] = "success"
-                elif type == "start-face-recognition":
-                    try:
-                        face_recognition = FaceRecognitionModel(name)
+        try:
+            while True:
+                message = Helper.receive_json(client_socket)
+                print(message)
+                if message != '':
+                    img_data, question, type, name = Server.get_data(message)
+                    result = {
+                        "result": "error",
+                        "registered": True
+                    }
+                    if type == 'close':
+                        break
+                    # Face Recognition
+                    elif type == "register-face-recognition":
+                        path = FilePathManager.resolve("face_recognition/recognition/models")
+                        base_model_path = f"{path}/base_model.model"
+                        person_path = f"{path}/{name}"
+                        os.makedirs(person_path)
+                        model_path = f"{person_path}/model.model"
+                        copy2(base_model_path, model_path)
                         result["result"] = "success"
-                    except FileNotFoundError:
-                        result["result"] = "error"
-                elif type == "face-recognition":
-                    if face_recognition is not None:
-                        result["result"] = face_recognition.predict(image)
-                    else:
-                        result["result"] = "error"
-                elif type == "add-person":
-                    if face_recognition is not None:
-                        images = []
-                        for i in range(number_of_faces):
-                            image, _, _, _ = Server.get_data(message)
-                            images.append(image)
-                        face_recognition.add_person(name, images)
-                        result["result"] = "success"
-                    else:
-                        result["result"] = "error"
-                elif type == "remove-person":
-                    if face_recognition is not None:
-                        face_recognition.remove_person(name)
-                        result["result"] = "success"
-                    else:
-                        result["result"] = "error"
+                    elif type == "start-face-recognition":
+                        try:
+                            face_recognition = FaceRecognitionModel(name)
+                            result["result"] = "success"
+                        except FileNotFoundError:
+                            result["result"] = "error"
+                    elif type == "face-recognition":
+                        if face_recognition is not None:
+                            result["result"] = face_recognition.predict(image)
+                        else:
+                            result["result"] = "error"
+                    elif type == "add-person":
+                        if face_recognition is not None:
+                            images = []
+                            for i in range(number_of_faces):
+                                image, _, _, _ = Server.get_data(message)
+                                images.append(image)
+                            face_recognition.add_person(name, images)
+                            result["result"] = "success"
+                        else:
+                            result["result"] = "error"
+                    elif type == "remove-person":
+                        if face_recognition is not None:
+                            face_recognition.remove_person(name)
+                            result["result"] = "success"
+                        else:
+                            result["result"] = "error"
 
-                # Visual Question Answering
-                elif type == "visual-question-answering":
-                    result["result"] = self.vqa.predict(question, image)
+                    # Visual Question Answering
+                    elif type == "visual-question-answering":
+                        result["result"] = self.vqa.predict(question, image)
 
-                # Image To Text
-                elif type == "image-to-text":
-                    result["result"] = self.image_to_text.predict(image)
-                Helper.send_json(client_socket, result)
+                    # Image To Text
+                    elif type == "image-to-text":
+                        result["result"] = self.image_to_text.predict(image)
+                    Helper.send_json(client_socket, result)
+
+        finally:
+            print('client_socket.close')
+            client_socket.close()
 
     @staticmethod
     def get_data(message):
         image = Server.get(message, "image")
-        return Server.to_image(image) if image is not None else None, Server.get(message, "question"), Server.get(
-            message,
-            "type"), Server.get(
-            message,
-            "name")
+        return Server.to_image(image) if image is not None else None, \
+               Server.get(message, "question"), \
+               Server.get(message, "type"), \
+               Server.get(message, "name")
 
     @staticmethod
     def get(message, attr):
