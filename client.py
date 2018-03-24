@@ -15,6 +15,14 @@ from rp_client.ocr import OCR
 from rp_client.recognizer import Recognizer
 
 Running = True
+# MESSAGE TYPES
+VQA = 'visual-question-answering'
+START_FACE = 'start-face-recognition'
+REGISTER_FACE = 'register-face-recognition'
+IMAGE_TO_TEXT = 'image-to-text'
+FACE_RECOGNITION = 'face-recognition'
+REMOVE_PERSON = 'remove-person'
+ADD_PERSON = 'add-person'
 
 
 class ClientAPI:
@@ -42,7 +50,7 @@ class ClientAPI:
                     if self.last_person is None:
                         print('please say add person')
                     else:
-                        self.data_callback(data_id='add-person')
+                        self.data_callback(data_id=ADD_PERSON)
                         # images count per user
                         images += 1
                         if images >= 10:
@@ -59,8 +67,10 @@ class ClientAPI:
         try:
             self.socket.connect((self.host, self.port))
             print('connected to server ' + self.host + ':' + str(self.port))
-            if self.configParser.get('user-data', 'u_name') != self.speaker_name:
-                self.data_callback(data_id='register-face-recognition')
+            if self.configParser.get('user-data', 'u_name') == self.speaker_name:
+                self.data_callback(data_id=START_FACE)
+            else:
+                self.data_callback(data_id=REGISTER_FACE)
 
             capture_handler = threading.Thread(
                 target=self.handle_capture_button,
@@ -86,7 +96,7 @@ class ClientAPI:
         :param data_id: callback message type
         """
         message = None
-        if data_id == 'visual-question-answering' or data_id == 'set-last-person':
+        if data_id == VQA or data_id == 'set-last-person':
             # verify speaker
             threshold = 0.5
             if self.get_speaker(fname) > threshold:
@@ -164,7 +174,7 @@ class ClientAPI:
             "type": type,
         }
         image_file = None
-        if type == 'add-person':
+        if type == ADD_PERSON:
             image_file = self.cam.take_image(face_count=1)
             if image_file == -1:
                 print('Sorry,Please Take a new Image.')
@@ -172,15 +182,15 @@ class ClientAPI:
                 return None
             json_data["name"] = self.last_person
 
-        elif type == 'register-face-recognition':
+        elif type == REGISTER_FACE or type == START_FACE:
             json_data["name"] = self.speaker_name
 
-        elif type == "remove-person":
+        elif type == REMOVE_PERSON:
             json_data["name"] = text_from_speech
 
-        elif type == 'image-to-text' or \
-                type == 'visual-question-answering' or \
-                type == 'face-recognition':
+        elif type == IMAGE_TO_TEXT or \
+                type == VQA or \
+                type == FACE_RECOGNITION:
             image_file = self.cam.take_image()
 
         json_data["image"] = image_file
