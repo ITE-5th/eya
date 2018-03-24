@@ -40,7 +40,6 @@ class Server:
                     img_data, question, type, name = Server.get_data(message)
                     result = {
                         "result": "error",
-                        "registered": True
                     }
                     if type == 'close':
                         break
@@ -53,6 +52,7 @@ class Server:
                         model_path = f"{person_path}/model.model"
                         copy2(base_model_path, model_path)
                         result["result"] = "success"
+                        result["registered"] = True
                     elif type == "start-face-recognition":
                         try:
                             face_recognition = FaceRecognitionModel(name)
