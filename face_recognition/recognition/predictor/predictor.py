@@ -1,13 +1,10 @@
-import os
 from abc import ABCMeta, abstractmethod
 
 import cv2
 from dlt.util.misc import cv2torch
 from torch.autograd import Variable
 
-from file_path_manager import FilePathManager
-from recognition.extractor.extractors import vgg_extractor
-from recognition.preprocessing.aligner_preprocessor import AlignerPreprocessor
+from recognition.extractor.extractors import vgg_extractor_forward
 from recognition.preprocessing.image_feature_extractor import ImageFeatureExtractor
 
 
@@ -24,7 +21,7 @@ class Predictor(metaclass=ABCMeta):
             face = cv2.resize(face, (200, 200))
             face = cv2torch(face).float()
             face = face.unsqueeze(0)
-            x = Variable(face).cuda()
-            x = ImageFeatureExtractor.extractor(x)
+            x = Variable(face)
+            x = vgg_extractor_forward(x)
             result.append((x, rect))
         return result

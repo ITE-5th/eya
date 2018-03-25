@@ -28,7 +28,7 @@ with open(os.path.join(data_path, 'attributes_vocab.txt')) as f:
     for att in f.readlines():
         attributes.append(att.split(',')[0].lower().strip())
 caffe.set_device(0)
-use_gpu = False
+use_gpu = True
 if use_gpu:
     caffe.set_mode_gpu()
 else:
@@ -45,10 +45,10 @@ class ImageFeaturesExtractor:
 
     @staticmethod
     def extract_from_image(image, conf_thresh=0.2):
+        caffe.set_mode_gpu()
         im = image
         image_h, image_w, _ = im.shape
-        scores, boxes, attr_scores, rel_scores = im_detect(net, im)
-        rois = net.blobs['rois'].data.copy()
+        scores, boxes, rois = im_detect(net, im)
         blobs, im_scales = _get_blobs(im, None)
         cls_boxes = rois[:, 1:5] / im_scales[0]
         cls_prob = net.blobs['cls_prob'].data
@@ -92,5 +92,5 @@ class ImageFeaturesExtractor:
 
 
 if __name__ == '__main__':
-    result = ImageFeaturesExtractor.extract_from_path(FilePathManager.resolve("vqa/test_images/some_apples.jpg"))
+    result = ImageFeaturesExtractor.extract_from_path(FilePathManager.resolve("face_recognition/test_images/zaher.jpg"))
     time.sleep(10)

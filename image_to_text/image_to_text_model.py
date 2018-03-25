@@ -27,8 +27,8 @@ class ImageToTextModel:
                              1)
         encoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/encoder-5-3000.pkl")))
         decoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/decoder-5-3000.pkl")))
-        encoder = encoder.cuda()
-        decoder = decoder.cuda()
+        encoder = encoder
+        decoder = decoder
         for param in encoder.parameters():
             param.requires_grad = False
         for param in decoder.parameters():
@@ -41,7 +41,7 @@ class ImageToTextModel:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = ImageToTextModel.transform(image)
         image = image.float().unsqueeze(0)
-        image = Variable(image.cuda())
+        image = Variable(image)
         feature = self.encoder(image)
         sampled_ids = self.decoder.sample(feature)
         sampled_ids = sampled_ids.cpu().data.numpy()

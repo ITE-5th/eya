@@ -31,7 +31,7 @@ class Client:
             if i % 3 == 0:
                 message = self._build_message("image-to-text")
             elif i % 3 == 1:
-                message = self._build_message("visual-question-answering", "what is the color of the umbrella?")
+                message = self._build_message("visual-question-answering", "what is the color of the wall?")
             else:
                 message = self._build_message("face-recognition")
             self.communicate_with_server(message)
@@ -47,9 +47,9 @@ class Client:
 
     def _build_message(self, type, question=None):
         if type != "face-recognition":
-            file_path = FilePathManager.resolve("vqa/test_images/girl_with_umbrella.jpg")
-        else:
             file_path = FilePathManager.resolve("face_recognition/test_images/zaher.jpg")
+        else:
+            file_path = FilePathManager.resolve("face_recognition/test_images/abd.jpg")
         with open(file_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
         json_data = {"type": type, "image": encoded_string, "question": question}

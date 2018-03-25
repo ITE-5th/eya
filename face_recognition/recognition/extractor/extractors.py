@@ -30,18 +30,17 @@ extractor = nn.Sequential(*list(extractor.children())[:-7])
 for param in extractor.parameters():
     param.requires_grad = False
 extractor.eval()
-extractor = extractor.cuda()
+# extractor = extractor.cuda()
 
 
-def vgg_extractor(siamese: bool = False):
-    return extractor
+def vgg_extractor_forward(x):
+    return extractor.forward(x)
 
 
 if __name__ == '__main__':
-    extractor = vgg_extractor()
     image = cv2.imread(FilePathManager.resolve("test_images/image_1.jpg"))
     image = cv2.resize(image, (200, 200))
     image = cv2torch(image).float()
     image = image.unsqueeze(0)
     image = Variable(image.cuda())
-    print(extractor(image))
+    print(vgg_extractor_forward(image))
