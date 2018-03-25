@@ -12,6 +12,7 @@ class AlignerPreprocessor:
     path_to_landmarks_model = FilePathManager.resolve("face_recognition/data/shape_predictor_68_face_landmarks.dat")
     detector = dlib.cnn_face_detection_model_v1(
         FilePathManager.resolve("face_recognition/data/mmod_human_face_detector.dat"))
+    # detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(path_to_landmarks_model)
     aligner = openface.AlignDlib(path_to_landmarks_model)
 

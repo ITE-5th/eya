@@ -8,13 +8,12 @@ from dlt.util import cv2torch
 from torch.autograd import Variable
 
 from file_path_manager import FilePathManager
-from recognition.extractor.extractors import vgg_extractor
+from recognition.extractor.extractors import vgg_extractor_forward
 from recognition.preprocessing.aligner_preprocessor import AlignerPreprocessor
 
 
 class ImageFeatureExtractor:
     aligner = AlignerPreprocessor(scale=1)
-    extractor = vgg_extractor()
 
     @staticmethod
     def extract_from_images(images):
@@ -22,22 +21,21 @@ class ImageFeatureExtractor:
         for image in images:
             aligned = ImageFeatureExtractor.aligner.preprocess_face_from_image(image)
             aligned = cv2torch(aligned).float().unsqueeze(0).cuda()
-            aligned = ImageFeatureExtractor.extractor(Variable(aligned))
+            aligned = vgg_extractor_forward(Variable(aligned))
             aligned = aligned.view(-1).cpu().data.numpy()
             result.append(aligned)
         return np.array(result)
 
     @staticmethod
-    def extract_from_dir(root_dir: str, lfw=False):
-        extractor = vgg_extractor()
-        names = sorted(os.listdir(root_dir + ("/lfw2" if lfw else "/custom_images2")))
-        if not os.path.exists(root_dir + ("/custom_features" if not lfw else "/lfw_features")):
-            os.makedirs(root_dir + ("/custom_features" if not lfw else "/lfw_features"))
+    def extract_from_dir(root_dir: str):
+        names = sorted(os.listdir(root_dir + "/custom_images2"))
+        if not os.path.exists(root_dir + "/custom_features"):
+            os.makedirs(root_dir + "/custom_features")
         for i in range(len(names)):
             name = names[i]
-            path = root_dir + ("/custom_images2/" if not lfw else "/lfw2/") + name
-            if not os.path.exists(root_dir + ("/custom_features/" if not lfw else "/lfw_features/") + name):
-                os.makedirs(root_dir + ("/custom_features/" if not lfw else "/lfw_features/") + name)
+            path = root_dir + "/custom_images2/" + name
+            if not os.path.exists(root_dir + "/custom_features/" + name):
+                os.makedirs(root_dir + "/custom_features/" + name)
             faces = os.listdir(path)
             for face in faces:
                 p = path + "/" + face
@@ -46,12 +44,12 @@ class ImageFeatureExtractor:
                 image = np.swapaxes(image, 0, 2)
                 image = np.swapaxes(image, 1, 2)
                 image = torch.from_numpy(image.astype(np.float)).float().unsqueeze(0).cuda()
-                image = extractor(Variable(image))
+                image = vgg_extractor_forward(Variable(image))
                 image = image.view(-1).cpu()
                 res = (image.data, i)
-                temp = root_dir + ("/custom_features/" if not lfw else "/lfw_features/") + name + "/" + face[
-                                                                                                        :face.rfind(
-                                                                                                            ".")] + ".features"
+                temp = root_dir + "/custom_features/" + name + "/" + face[
+                                                                     :face.rfind(
+                                                                         ".")] + ".features"
                 torch.save(res, temp)
 
     @staticmethod
