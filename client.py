@@ -20,6 +20,7 @@ VQA = 'visual-question-answering'
 START_FACE = 'start-face-recognition'
 REGISTER_FACE = 'register-face-recognition'
 IMAGE_TO_TEXT = 'image-to-text'
+OCR = 'OCR'
 FACE_RECOGNITION = 'face-recognition'
 REMOVE_PERSON = 'remove-person'
 ADD_PERSON = 'add-person'
@@ -30,7 +31,7 @@ class ClientAPI:
         self.host = host
         self.port = port
         self.speaker_name = speaker_name
-        self.cam = Camera()
+        self.cam = Camera(width=800, height=600)
         self.tts = TTS(festival=False, espeak=False, pico=True)
         self.recognizer = Recognizer(server=self, callback_function=self.data_callback)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -153,20 +154,46 @@ class ClientAPI:
         self.socket.close()
 
     def communicate_with_server(self, message):
-        if message['type'] == 'OCR':
+        if message['type'] == OCR:
             response = OCR.get_text()
         else:
             Helper.send_json(self.socket, message)
             response = Helper.receive_json(self.socket)
-
         if 'registered' in response:
+            # register face response
             print('registering')
             self.configParser.set('user-data', 'u_name', self.speaker_name)
             with open('config.ini', 'w') as f:
                 self.configParser.write(f)
-
         print(response)
-        self.tts.say(response['result'])
+        self.say_message(response['result'], message['type'])
+
+    def say_message(self, response, m_type):
+        phrase = 'we recognise '
+
+        if m_type == FACE_RECOGNITION:
+            UNKNOWN = 'Unknown'
+            persons = response.split(',')
+            unk_count = persons.count(UNKNOWN)
+            # remove Unknown
+            persons = [x for i, x in enumerate(persons) if x != UNKNOWN]
+            if unk_count > 0:
+                persons.append(str(unk_count) + ' Unknown persons ')
+
+            persons_count = len(persons)
+            for i in range(persons_count):
+                phrase += persons[i].capitalize() + (
+                    ' . And ' if i == persons_count - 2 and persons_count > 1 else ' . ')
+
+        elif m_type == IMAGE_TO_TEXT or m_type == OCR:
+            phrase += response
+        elif m_type == VQA:
+            answers = response.split(',')
+            answers_count = len(answers)
+            for i in range(answers_count):
+                phrase += answers[i].capitalize() + (
+                    ' . Or ' if i == answers_count - 2 and answers_count > 1 else ' . ')
+        self.tts.say(phrase)
 
     def _build_message(self, type, text_from_speech=None):
 
