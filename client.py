@@ -27,10 +27,11 @@ ADD_PERSON = 'add-person'
 
 
 class ClientAPI:
-    def __init__(self, speaker_name, host=socket.gethostname(), port=8888, configFilePath=r'./config.ini'):
+    def __init__(self, host=socket.gethostname(), port=8888, configFilePath=r'./config.ini'):
         self.host = host
         self.port = port
-        self.speaker_name = speaker_name
+        self.speaker_name = 'Default'
+        self.id = 'Default'
         self.cam = Camera(width=800, height=600)
         self.tts = TTS(festival=False, espeak=False, pico=True)
         self.recognizer = Recognizer(server=self, callback_function=self.data_callback)
@@ -68,16 +69,28 @@ class ClientAPI:
         try:
             self.socket.connect((self.host, self.port))
             print('connected to server ' + self.host + ':' + str(self.port))
-            if self.configParser.get('user-data', 'u_name') == self.speaker_name:
-                self.data_callback(data_id=START_FACE)
-            else:
+            if self.configParser.get('user-data', 'id') == "":
+                # First Run
                 self.data_callback(data_id=REGISTER_FACE)
+                self.tts.say('Please Say your Name .')
+                self.speaker_name = self.speech_to_text(self.id + '.wav', mic=True)
+                self.write_config('id', self.id)
+                self.write_config('u_name', self.speaker_name)
+            else:
+
+                self.id = self.configParser.get('user-data', 'id')
+                self.speaker_name = self.configParser.get('user-data', 'u_name')
+                self.data_callback(data_id=START_FACE)
+
+            self.tts.say('Welcome ' + self.speaker_name)
+            self.tts.say('Welcome ' + self.id)
 
             capture_handler = threading.Thread(
                 target=self.handle_capture_button,
             )
+
             capture_handler.start()
-            #     start recogniser
+            # start recogniser
             self.recognizer.start()
         finally:
             Running = False
@@ -126,12 +139,20 @@ class ClientAPI:
         # return model.verify_speaker(fname, self.speaker_name.title())
         return 1
 
-    def speech_to_text(self, fname=None):
+    def speech_to_text(self, fname=None, mic=False):
         r = sr.Recognizer()
 
-        with sr.AudioFile(fname) as source:
-            audio = r.record(source)  # read the entire audio file
-        # recognize speech using Google Speech Recognition
+        if mic:
+            print('Recording')
+            with sr.Microphone() as source:
+                audio = r.listen(source)
+                # write audio to a WAV file
+                with open(fname, "wb") as f:
+                    f.write(audio.get_wav_data())
+        else:
+            with sr.AudioFile(fname) as source:
+                audio = r.record(source)  # read the entire audio file
+
         try:
             # print("Sphinx thinks you said " + r.recognize_sphinx(audio))
             print("")
@@ -140,6 +161,7 @@ class ClientAPI:
 
         except sr.RequestError as e:
             print("Sphinx error; {0}".format(e))
+        # recognize speech using Google Speech Recognition
         googleSTT = ''
         try:
             googleSTT = r.recognize_google(audio)
@@ -159,41 +181,46 @@ class ClientAPI:
         else:
             Helper.send_json(self.socket, message)
             response = Helper.receive_json(self.socket)
-        if 'registered' in response:
+        if message['type'] == REGISTER_FACE:
+            self.id = response['result']
             # register face response
             print('registering')
-            self.configParser.set('user-data', 'u_name', self.speaker_name)
-            with open('config.ini', 'w') as f:
-                self.configParser.write(f)
         print(response)
         self.say_message(response['result'], message['type'])
 
+    def write_config(self, field, data):
+        self.configParser.set('user-data', field, data)
+        with open('config.ini', 'w') as f:
+            self.configParser.write(f)
+
     def say_message(self, response, m_type):
         phrase = 'we recognise '
+        print(response)
+        print(m_type)
+        if response.strip() != '':
+            if m_type == FACE_RECOGNITION:
+                UNKNOWN = 'Unknown'
+                persons = response.split(',')
+                unk_count = persons.count(UNKNOWN)
+                # remove Unknown
+                persons = [x for i, x in enumerate(persons) if x != UNKNOWN]
+                if unk_count > 0:
+                    persons.append(str(unk_count) + ' Unknown persons ')
 
-        if m_type == FACE_RECOGNITION:
-            UNKNOWN = 'Unknown'
-            persons = response.split(',')
-            unk_count = persons.count(UNKNOWN)
-            # remove Unknown
-            persons = [x for i, x in enumerate(persons) if x != UNKNOWN]
-            if unk_count > 0:
-                persons.append(str(unk_count) + ' Unknown persons ')
+                persons_count = len(persons)
+                for i in range(persons_count):
+                    phrase += persons[i].capitalize() + (
+                        ' . And ' if i == persons_count - 2 and persons_count > 1 else ' . ')
 
-            persons_count = len(persons)
-            for i in range(persons_count):
-                phrase += persons[i].capitalize() + (
-                    ' . And ' if i == persons_count - 2 and persons_count > 1 else ' . ')
-
-        elif m_type == IMAGE_TO_TEXT or m_type == OCR:
-            phrase += response
-        elif m_type == VQA:
-            answers = response.split(',')
-            answers_count = len(answers)
-            for i in range(answers_count):
-                phrase += answers[i].capitalize() + (
-                    ' . Or ' if i == answers_count - 2 and answers_count > 1 else ' . ')
-        self.tts.say(phrase)
+            elif m_type == IMAGE_TO_TEXT or m_type == OCR:
+                phrase += response
+            elif m_type == VQA:
+                answers = response.split(',')
+                answers_count = len(answers)
+                for i in range(answers_count):
+                    phrase += answers[i].capitalize() + (
+                        ' . Or ' if i == answers_count - 2 and answers_count > 1 else ' . ')
+            self.tts.say(phrase)
 
     def _build_message(self, type, text_from_speech=None):
 
@@ -210,7 +237,7 @@ class ClientAPI:
             json_data["name"] = self.last_person
 
         elif type == REGISTER_FACE or type == START_FACE:
-            json_data["name"] = self.speaker_name
+            json_data["name"] = self.id
 
         elif type == REMOVE_PERSON:
             json_data["name"] = text_from_speech
@@ -229,7 +256,7 @@ class ClientAPI:
 
 
 if __name__ == '__main__':
-    api = ClientAPI(speaker_name='zaher', host='192.168.1.3')
+    api = ClientAPI(host='192.168.1.3')
     try:
         api.start()
     finally:
