@@ -16,20 +16,19 @@ class InsightfacePredictor(Predictor):
         self.reload()
 
     def detect(self, features, threshold=0.4):
-        features = features.reshape(1, -1)
+        features = features.reshape(-1, 1)
         features = InsightfacePredictor.normalize(features)
         max_sim = -1
         max_per = None
-        for (clz, all_class_features) in self.classes.items():
-            for feat in all_class_features:
-                sim = np.dot(features, feat)
-                if sim > max_sim:
-                    max_per = clz
-                    max_sim = sim
+        for (clz, class_features) in self.classes.items():
+            sim = np.dot(features, class_features)
+            sim = sim.max()
+            if sim > max_sim:
+                max_per = clz
+                max_sim = sim
         return max_per if max_sim >= threshold else Predictor.UNKNOWN, max_sim
 
     def predict_from_image(self, image):
-        print(self.classes)
         items = ImageFeatureExtractor.aligner.preprocess_image(image)
         result = []
         for (face, rect) in items:
@@ -45,13 +44,14 @@ class InsightfacePredictor(Predictor):
         joblib.dump(self.classes, self.model_path)
 
     def add_person(self, person_name, images):
-        self.classes[person_name] = []
+        feats = []
         for image in images:
             image = ImageFeatureExtractor.aligner.preprocess_face_from_image(image)
-            feats = self.face_model.get_feature(image)
-            feats = InsightfacePredictor.normalize(feats)
-            feats = feats.reshape(-1, 1)
-            self.classes[person_name].append(feats)
+            feat = self.face_model.get_feature(image)
+            feat = InsightfacePredictor.normalize(feat)
+            # feat = feat.reshape(1, -1)
+            feats.append(feat)
+        self.classes[person_name] = np.array(feats)
         self.save()
 
     def remove_person(self, person_name):
