@@ -1,6 +1,7 @@
 import base64
 
 import picamera
+import time
 
 pi_camera = picamera.PiCamera()
 
@@ -39,8 +40,11 @@ class Camera:
 
 
 if __name__ == '__main__':
-    c = Camera(width=500, height=500)
-    x = c.take_image(face_count=1)
+    c = Camera(width=800, height=600)
+    for i in range(10):
+        print('taking photo')
+        time.sleep(1)
+        x = c.take_image(file_name='./temp/1{}.jpg'.format(i))
     if x == -1:
         print('Sorry,Please Take a new Image.')
     # print(x)
