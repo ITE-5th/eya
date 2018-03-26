@@ -24,6 +24,7 @@ OCR = 'OCR'
 FACE_RECOGNITION = 'face-recognition'
 REMOVE_PERSON = 'remove-person'
 ADD_PERSON = 'add-person'
+UNKNOWN = 'Unknown'
 
 
 class ClientAPI:
@@ -59,6 +60,7 @@ class ClientAPI:
                             self.last_person = None
                             images = 0
                     time.sleep(1)
+                time.sleep(0.05)
         except Exception as e:
             print('\033[93m' + 'capture thread stopped' + '\033[0m')
             print(e)
@@ -83,7 +85,6 @@ class ClientAPI:
                 self.data_callback(data_id=START_FACE)
 
             self.tts.say('Welcome ' + self.speaker_name)
-            self.tts.say('Welcome ' + self.id)
 
             capture_handler = threading.Thread(
                 target=self.handle_capture_button,
@@ -194,23 +195,28 @@ class ClientAPI:
             self.configParser.write(f)
 
     def say_message(self, response, m_type):
-        phrase = 'we recognise '
+        phrase = 'we recognise . '
         print(response)
         print(m_type)
         if response.strip() != '':
             if m_type == FACE_RECOGNITION:
-                UNKNOWN = 'Unknown'
                 persons = response.split(',')
-                unk_count = persons.count(UNKNOWN)
+                unk_count = sum([x.split(' ').count(UNKNOWN) for i, x in enumerate(persons)])
+
                 # remove Unknown
-                persons = [x for i, x in enumerate(persons) if x != UNKNOWN]
+                persons = [x for i, x in enumerate(persons) if x.split(' ')[0] != UNKNOWN]
+                for idx, person in enumerate(persons):
+                    person = person.split(' ')
+                    persons[idx] = person[0].replace('_', ' ').title()
+                    persons[idx] += ' With probability of {} Percent . '.format(person[1])
+
                 if unk_count > 0:
-                    persons.append(str(unk_count) + ' Unknown persons ')
+                    persons.append(str(unk_count) + ' Unknown persons . ')
 
                 persons_count = len(persons)
                 for i in range(persons_count):
-                    phrase += persons[i].capitalize() + (
-                        ' . And ' if i == persons_count - 2 and persons_count > 1 else ' . ')
+                    phrase += persons[i]
+                    phrase += ' And ' if i == persons_count - 2 and persons_count > 1 else ''
 
             elif m_type == IMAGE_TO_TEXT or m_type == OCR:
                 phrase += response
