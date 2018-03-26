@@ -1,12 +1,18 @@
 from face_recognition.recognition.predictor.evm_predictor import EvmPredictor
 from file_path_manager import FilePathManager
+from recognition.predictor.insightface_predictor import InsightfacePredictor
 
 
 class FaceRecognitionModel:
-    def __init__(self, user_name):
+    def __init__(self, user_name, type="insight"):
         try:
-            self.model_path = FilePathManager.resolve(f"face_recognition/recognition/models/{user_name}/model.model")
-            self.predictor = EvmPredictor(self.model_path)
+            if type == "evm":
+                self.model_path = FilePathManager.resolve(f"face_recognition/recognition/models/{user_name}/evm.model")
+                self.predictor = EvmPredictor(self.model_path)
+            else:
+                self.model_path = FilePathManager.resolve(
+                    f"face_recognition/recognition/models/{user_name}/insight.model")
+                self.predictor = InsightfacePredictor(self.model_path)
         except Exception:
             raise FileNotFoundError("The model was not found")
 
@@ -18,5 +24,5 @@ class FaceRecognitionModel:
 
     def predict(self, face):
         temp = self.predictor.predict_from_image(face)
-        temp = [x[0] for x in temp]
+        temp = [f"{x[0]} {x[2]}" for x in temp]
         return ",".join(temp)

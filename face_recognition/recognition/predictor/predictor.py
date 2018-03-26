@@ -9,6 +9,7 @@ from recognition.preprocessing.image_feature_extractor import ImageFeatureExtrac
 
 
 class Predictor(metaclass=ABCMeta):
+    UNKNOWN = "Unknown"
 
     def predict_from_path(self, image_path: str):
         return self.predict_from_image(cv2.imread(image_path))

@@ -23,8 +23,11 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 
 
 # @jitclass(spec)
+from recognition.predictor.predictor import Predictor
+
+
 class EVM(BaseEstimator):
-    UNKNOWN = "Unknown"
+    UNKNOWN = Predictor.UNKNOWN
 
     def __init__(self,
                  tail: int = 10,

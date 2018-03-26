@@ -5,8 +5,8 @@ import threading
 from shutil import copy2, rmtree
 
 import cv2
+import joblib
 import numpy as np
-import time
 
 from face_recognition.face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
@@ -37,7 +37,7 @@ class Server:
         try:
             while True:
                 message = Helper.receive_json(client_socket)
-                print(message)
+                # print(message)
                 if message != '':
                     image, question, type, name = Server.get_data(message)
                     if name is not None:
@@ -56,14 +56,16 @@ class Server:
                         if os.path.exists(person_path):
                             rmtree(person_path)
                         os.makedirs(person_path)
-                        model_path = f"{person_path}/model.model"
-                        copy2(base_model_path, model_path)
+                        evm_model_path = f"{person_path}/evm.model"
+                        copy2(base_model_path, evm_model_path)
+                        insight_model_path = f"{person_path}/insight.model"
+                        data = dict()
+                        joblib.dump(data, insight_model_path)
                         result["result"] = "success"
                         result["registered"] = True
                     elif type == "start-face-recognition":
                         try:
                             face_recognition = FaceRecognitionModel(name)
-                            print("enter face")
                             result["result"] = "success"
                         except FileNotFoundError:
                             result["result"] = "error"

@@ -10,9 +10,9 @@ from file_path_manager import FilePathManager
 
 class AlignerPreprocessor:
     path_to_landmarks_model = FilePathManager.resolve("face_recognition/data/shape_predictor_68_face_landmarks.dat")
-    detector = dlib.cnn_face_detection_model_v1(
-        FilePathManager.resolve("face_recognition/data/mmod_human_face_detector.dat"))
-    # detector = dlib.get_frontal_face_detector()
+    # detector = dlib.cnn_face_detection_model_v1(
+    #     FilePathManager.resolve("face_recognition/data/mmod_human_face_detector.dat"))
+    detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(path_to_landmarks_model)
     aligner = openface.AlignDlib(path_to_landmarks_model)
 
@@ -24,7 +24,8 @@ class AlignerPreprocessor:
         items = AlignerPreprocessor.detector(image, self.scale)
         result = []
         for item in items:
-            rect = item.rect
+            # rect = item.rect
+            rect = item
             aligned = AlignerPreprocessor.aligner.align(self.size, image, rect,
                                                         landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
             result.append((aligned, rect))
@@ -35,7 +36,7 @@ class AlignerPreprocessor:
         return self.preprocess_face_from_image(image)
 
     def preprocess_face_from_image(self, image):
-        rect = AlignerPreprocessor.detector(image, self.scale)[0].rect
+        rect = AlignerPreprocessor.detector(image, self.scale)[0]
         aligned = AlignerPreprocessor.aligner.align(self.size, image, rect,
                                                     landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
         return aligned
