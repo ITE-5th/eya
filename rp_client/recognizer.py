@@ -11,7 +11,7 @@ class Recognizer:
         if pmdl_path is None:
             pmdl_path = [
                 # start listening
-                './rp_client/resources/models/alexa.umdl',
+                './rp_client/resources/models/Open_Sesame.pmdl',
                 # visual question answering
                 './rp_client/resources/models/question.pmdl',
                 # face recognition
@@ -19,11 +19,11 @@ class Recognizer:
                 # image captioning
                 './rp_client/resources/models/caption.pmdl',
                 # OCR
-                './rp_client/resources/models/snowboy.umdl',
+                './rp_client/resources/models/Read.pmdl',
                 # new person
-                './rp_client/resources/models/alexa_02092017.umdl',
+                './rp_client/resources/models/add_person.pmdl',
                 # remove person
-                './rp_client/resources/models/smart_mirror.umdl'
+                './rp_client/resources/models/remove_person.pmdl'
             ]
 
         model = pmdl_path
@@ -91,8 +91,8 @@ class Recognizer:
 
             self.start_detector.start(detected_callback=[
                 lambda: [self.start_detected_callback(), snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)]],
-                                      interrupt_check=self.interrupt_start_callback,
-                                      sleep_time=0.01)
+                interrupt_check=self.interrupt_start_callback,
+                sleep_time=0.01)
 
             self.start_detector.terminate()
             self.detector.start(detected_callback=callbacks,
