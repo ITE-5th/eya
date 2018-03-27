@@ -5,6 +5,7 @@ from dlt.util.misc import cv2torch
 from torch.autograd import Variable
 
 from file_path_manager import FilePathManager
+from recognition.estimator.insightface.face_embedding import FaceModel
 from recognition.extractor.vgg_face import vgg_face
 
 
@@ -16,25 +17,31 @@ def remove_net(state):
     return new_state
 
 
-extractor = vgg_face
+vgg_extractor = vgg_face
 # if not siamese:
 state = torch.load(FilePathManager.resolve('face_recognition/data/VGG_FACE.pth'))
-extractor.load_state_dict(state)
-extractor = nn.Sequential(*list(extractor.children())[:-7])
+vgg_extractor.load_state_dict(state)
+vgg_extractor = nn.Sequential(*list(vgg_extractor.children())[:-7])
 # else:
 #     state = torch.load(FilePathManager.resolve('data/VGG_FACE_MODIFIED.pth.tar'))
-#     extractor = nn.Sequential(*list(extractor.children())[:-1])
+#     vgg_extractor = nn.Sequential(*list(vgg_extractor.children())[:-1])
 #     state = state["state_dict"]
 #     state = remove_net(state)
-#     extractor.load_state_dict(state)
-for param in extractor.parameters():
+#     vgg_extractor.load_state_dict(state)
+for param in vgg_extractor.parameters():
     param.requires_grad = False
-extractor.eval()
+vgg_extractor.eval()
 # extractor = extractor.cuda()
+insight_extractor = FaceModel(threshold=1.24, det=2, image_size="112,112",
+                              model=FilePathManager.resolve("face_recognition/data/model-r50-am-lfw/model,0"))
 
 
 def vgg_extractor_forward(x):
-    return extractor.forward(x)
+    return vgg_extractor.forward(x)
+
+
+def insight_extractor_forward(x):
+    return insight_extractor.get_feature(x)
 
 
 if __name__ == '__main__':
