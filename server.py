@@ -2,15 +2,12 @@ import base64
 import os
 import socket
 import threading
-from shutil import copy2, rmtree
 
 import cv2
-import joblib
 import numpy as np
 
 from face_recognition.face_recognition_model import FaceRecognitionModel
-from file_path_manager import FilePathManager
-from helper import Helper
+from misc.json_helper import JsonHelper
 from image_to_text.build_vocab import Vocabulary
 from image_to_text.image_to_text_model import ImageToTextModel
 from vqa.vqa_model import VqaModel
@@ -20,7 +17,7 @@ Vocabulary()
 
 
 class Server:
-    def __init__(self, host=socket.gethostname(), port=8888):
+    def __init__(self, host=socket.gethostname(), port=9000):
         self.host = host
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,8 +33,8 @@ class Server:
         number_of_faces = 10
         try:
             while True:
-                message = Helper.receive_json(client_socket)
-                # print(message)
+                message = JsonHelper.receive_json(client_socket)
+                print(message)
                 if message != '':
                     image, question, type, name = Server.get_data(message)
                     if name is not None:
@@ -50,17 +47,7 @@ class Server:
 
                     # Face Recognition
                     elif type == "register-face-recognition":
-                        path = FilePathManager.resolve("face_recognition/recognition/models")
-                        base_model_path = f"{path}/base_model.model"
-                        person_path = f"{path}/{name}"
-                        if os.path.exists(person_path):
-                            rmtree(person_path)
-                        os.makedirs(person_path)
-                        evm_model_path = f"{person_path}/evm.model"
-                        copy2(base_model_path, evm_model_path)
-                        insight_model_path = f"{person_path}/insight.model"
-                        data = dict()
-                        joblib.dump(data, insight_model_path)
+                        FaceRecognitionModel.register(name)
                         result["result"] = "success"
                         result["registered"] = True
                     elif type == "start-face-recognition":
@@ -98,7 +85,7 @@ class Server:
                     # Image To Text
                     elif type == "image-to-text":
                         result["result"] = self.image_to_text.predict(image)
-                    Helper.send_json(client_socket, result)
+                    JsonHelper.send_json(client_socket, result)
 
         finally:
             print('client_socket.close')
@@ -139,7 +126,7 @@ class Server:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = Server()
+    server = Server(host="192.168.43.71")
 
     try:
         server.start()
