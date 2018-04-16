@@ -45,7 +45,7 @@ class ImageFeaturesExtractor:
 
     @staticmethod
     def extract_from_image(image, conf_thresh=0.2):
-        caffe.set_mode_gpu()
+        caffe.set_mode_cpu()
         im = image
         image_h, image_w, _ = im.shape
         scores, boxes, rois = im_detect(net, im)

@@ -8,7 +8,7 @@ import speech_recognition as sr
 
 # from rp_client.speaker import Speaker
 # from rp_client.speaker import SpeakersModel
-from helper import Helper
+from misc.json_helper import JsonHelper
 from rp_client.TTS import TTS
 from rp_client.camera import Camera
 from rp_client.ocr import OCR
@@ -98,7 +98,7 @@ class ClientAPI:
             Running = False
             print('closing camera')
             self.cam.close()
-            Helper.send_json(self.socket, {'type': 'close'})
+            JsonHelper.send_json(self.socket, {'type': 'close'})
             print('closing socket')
             self.socket.close()
 
@@ -181,8 +181,8 @@ class ClientAPI:
         if message['type'] == OCR:
             response = OCR.get_text()
         else:
-            Helper.send_json(self.socket, message)
-            response = Helper.receive_json(self.socket)
+            JsonHelper.send_json(self.socket, message)
+            response = JsonHelper.receive_json(self.socket)
         if message['type'] == REGISTER_FACE:
             self.id = response['result']
             # register face response

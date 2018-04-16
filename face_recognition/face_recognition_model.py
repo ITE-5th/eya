@@ -1,20 +1,40 @@
-from face_recognition.recognition.predictor.evm_predictor import EvmPredictor
+import os
+from shutil import rmtree, copy2
+
+import joblib
+
+from face_recognition.predictor.evm_predictor import EvmPredictor
+from face_recognition.predictor.similarity_predictor import SimilarityPredictor
 from file_path_manager import FilePathManager
-from recognition.predictor.insightface_predictor import InsightfacePredictor
 
 
 class FaceRecognitionModel:
-    def __init__(self, user_name, type="insight"):
+    def __init__(self, user_name, type="similarity"):
         try:
             if type == "evm":
-                self.model_path = FilePathManager.resolve(f"face_recognition/recognition/models/{user_name}/evm.model")
-                self.predictor = EvmPredictor(self.model_path)
-            else:
                 self.model_path = FilePathManager.resolve(
-                    f"face_recognition/recognition/models/{user_name}/insight.model")
-                self.predictor = InsightfacePredictor(self.model_path)
+                    f"face_recognition/trained_models/{user_name}/base_model.model")
+                self.predictor = EvmPredictor(self.model_path)
+            elif type == "similarity":
+                self.model_path = FilePathManager.resolve(
+                    f"face_recognition/trained_models/{user_name}/similarity.model")
+                self.predictor = SimilarityPredictor(self.model_path)
         except Exception:
             raise FileNotFoundError("The model was not found")
+
+    @staticmethod
+    def register(name):
+        path = FilePathManager.resolve("face_recognition/trained_models")
+        base_model_path = f"{path}/base_model.model"
+        person_path = f"{path}/{name}"
+        if os.path.exists(person_path):
+            rmtree(person_path)
+        os.makedirs(person_path)
+        evm_model_path = f"{person_path}/evm.model"
+        copy2(base_model_path, evm_model_path)
+        insight_model_path = f"{person_path}/similarity.model"
+        data = {}
+        joblib.dump(data, insight_model_path)
 
     def add_person(self, person_name, images):
         self.predictor.add_person(person_name, images)

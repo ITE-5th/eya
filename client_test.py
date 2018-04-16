@@ -2,7 +2,7 @@ import base64
 import socket
 
 from file_path_manager import FilePathManager
-from helper import Helper
+from misc.json_helper import JsonHelper
 
 
 class Client:
@@ -39,8 +39,8 @@ class Client:
         self.socket.close()
 
     def communicate_with_server(self, message):
-        Helper.send_json(self.socket, message)
-        response = Helper.receive_json(self.socket)
+        JsonHelper.send_json(self.socket, message)
+        response = JsonHelper.receive_json(self.socket)
         print(response)
 
     @staticmethod
