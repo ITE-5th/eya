@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from misc.time_logger import TimeLogger
+from face_recognition.misc.time_logger import TimeLogger
 
 
 class Stage(ABC):

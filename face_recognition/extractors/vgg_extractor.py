@@ -1,19 +1,11 @@
-import glob
-
-import cv2
 import torch
 from dlt.util import torch2cv
 from torch.autograd import Variable
 
-from aligners.no_aligner import NoAligner
-from aligners.one_millisecond_aligner import OneMillisecondAligner
-from bases.pipeline import Pipeline
-from detectors.dlib_detector import DLibDetector
 from extractors.base_extractor import BaseExtractor
 from extractors.models.vgg.vgg_face import vgg_face
+from face_recognition.misc.utils import Utils
 from file_path_manager import FilePathManager
-from misc.utils import Utils
-from transforms.crop import Crop
 from transforms.resize import Resize
 
 

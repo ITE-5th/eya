@@ -6,7 +6,7 @@ import dlib
 from bases.pipeline import Pipeline
 from detectors.base_detector import BaseDetector
 from file_path_manager import FilePathManager
-from misc.utils import Utils
+from face_recognition.misc.utils import Utils
 from transforms.crop import Crop
 from transforms.scale import Scale
 

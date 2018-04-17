@@ -3,7 +3,7 @@ from torch.autograd import Variable
 
 from extractors.base_extractor import BaseExtractor
 from extractors.models.openface.load_openface_net import prepareOpenFace
-from misc.utils import Utils
+from face_recognition.misc.utils import Utils
 from transforms.resize import Resize
 
 

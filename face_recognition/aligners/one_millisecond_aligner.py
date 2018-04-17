@@ -1,15 +1,11 @@
-import glob
 from multiprocessing import cpu_count
 from multiprocessing.pool import Pool
 
-import cv2
 import openface
 
 from aligners.base_aligner import BaseAligner
-from bases.pipeline import Pipeline
-from detectors.dlib_detector import DLibDetector
+from face_recognition.misc.utils import Utils
 from file_path_manager import FilePathManager
-from misc.utils import Utils
 
 
 class OneMillisecondAligner(BaseAligner):

@@ -1,7 +1,7 @@
 from typing import List
 
 from bases.stage import Stage
-from misc.time_logger import TimeLogger
+from face_recognition.misc.time_logger import TimeLogger
 
 
 class Pipeline(object):

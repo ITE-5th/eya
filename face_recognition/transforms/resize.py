@@ -1,6 +1,6 @@
 import cv2
 
-from misc.utils import Utils
+from face_recognition.misc.utils import Utils
 from transforms.base_transform import BaseTransform
 
 

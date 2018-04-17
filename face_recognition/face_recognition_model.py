@@ -23,12 +23,15 @@ class FaceRecognitionModel:
             raise FileNotFoundError("The model was not found")
 
     @staticmethod
-    def register(name):
+    def register(name, remove_dir=True):
         path = FilePathManager.resolve("face_recognition/trained_models")
         base_model_path = f"{path}/base_model.model"
         person_path = f"{path}/{name}"
         if os.path.exists(person_path):
-            rmtree(person_path)
+            if remove_dir:
+                rmtree(person_path)
+            else:
+                return
         os.makedirs(person_path)
         evm_model_path = f"{person_path}/evm.model"
         copy2(base_model_path, evm_model_path)
@@ -44,5 +47,5 @@ class FaceRecognitionModel:
 
     def predict(self, face):
         temp = self.predictor.predict_from_image(face)
-        temp = [f"{x[0]} {x[2]}" for x in temp]
+        temp = [f"{x[0]} {x[1]}" for x in temp]
         return ",".join(temp)

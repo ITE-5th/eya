@@ -46,8 +46,7 @@ class Client:
     @staticmethod
     def _build_message(type, question=None):
         if type == "face-recognition":
-            # file_path = FilePathManager.resolve("vqa/test_images/test.jpg")
-            file_path = FilePathManager.resolve("face_recognition/test_images/zaher_2.jpg")
+            file_path = FilePathManager.resolve("face_recognition/test_faces/brad-pitt-jennifer-aniston.jpg")
         else:
             file_path = FilePathManager.resolve("vqa/test_images/test.jpg")
         with open(file_path, "rb") as image_file:
@@ -57,5 +56,5 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client()
+    client = Client(port=8888)
     client.start()

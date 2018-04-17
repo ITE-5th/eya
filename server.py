@@ -7,9 +7,9 @@ import cv2
 import numpy as np
 
 from face_recognition.face_recognition_model import FaceRecognitionModel
-from misc.json_helper import JsonHelper
 from image_to_text.build_vocab import Vocabulary
 from image_to_text.image_to_text_model import ImageToTextModel
+from misc.json_helper import JsonHelper
 from vqa.vqa_model import VqaModel
 
 # just to use it
@@ -25,7 +25,6 @@ class Server:
         self.socket.listen(5)
         self.image_to_text = ImageToTextModel()
         self.vqa = VqaModel()
-        print("finish vqa + image to text")
         self.client_socket, self.address = None, None
 
     def handle_client_connection(self, client_socket):
@@ -126,7 +125,8 @@ class Server:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = Server(host="192.168.43.71")
+    server = Server(port=8888)
+    # server = Server(host="192.168.43.71", port=8888)
 
     try:
         server.start()
