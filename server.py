@@ -6,8 +6,8 @@ import threading
 import cv2
 import numpy as np
 
-from face_recognition.face_recognition_model import FaceRecognitionModel
-from image_to_text.build_vocab import Vocabulary
+from encoder_decoder.build_vocab import Vocabulary
+from face.face_recognition_model import FaceRecognitionModel
 from image_to_text.image_to_text_model import ImageToTextModel
 from misc.json_helper import JsonHelper
 from vqa.vqa_model import VqaModel
@@ -33,6 +33,7 @@ class Server:
         try:
             while True:
                 message = JsonHelper.receive_json(client_socket)
+                print("message:")
                 print(message)
                 if message != '':
                     image, question, type, name = Server.get_data(message)
@@ -46,7 +47,7 @@ class Server:
 
                     # Face Recognition
                     elif type == "register-face-recognition":
-                        FaceRecognitionModel.register(name)
+                        FaceRecognitionModel.register(name, remove_dir=True)
                         result["result"] = "success"
                         result["registered"] = True
                     elif type == "start-face-recognition":
@@ -85,6 +86,8 @@ class Server:
                     elif type == "image-to-text":
                         result["result"] = self.image_to_text.predict(image)
                     JsonHelper.send_json(client_socket, result)
+                    print("result:")
+                    print(result)
 
         finally:
             print('client_socket.close')

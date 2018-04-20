@@ -11,7 +11,7 @@ import numpy as np
 from face_recognition.face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from helper import Helper
-from image_to_text.build_vocab import Vocabulary
+from encoder_decoder.build_vocab import Vocabulary
 from image_to_text.image_to_text_model import ImageToTextModel
 from vqa.vqa_model import VqaModel
 
@@ -50,7 +50,7 @@ class Server:
 
                     # Face Recognition
                     elif type == "register-face-recognition":
-                        path = FilePathManager.resolve("face_recognition/recognition/models")
+                        path = FilePathManager.resolve("face/recognition/models")
                         base_model_path = f"{path}/base_model.model"
                         person_path = f"{path}/{name}"
                         if os.path.exists(person_path):
