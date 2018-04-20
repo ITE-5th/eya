@@ -2,21 +2,19 @@ import base64
 import os
 import socket
 import threading
-from shutil import copy2, rmtree
 
-import cv2
-import joblib
+# import cv2
 import numpy as np
 
-from face_recognition.face_recognition_model import FaceRecognitionModel
-from file_path_manager import FilePathManager
-from helper import Helper
-from image_to_text.build_vocab import Vocabulary
-from image_to_text.image_to_text_model import ImageToTextModel
-from vqa.vqa_model import VqaModel
-
+# from face_recognition.face_recognition_model import FaceRecognitionModel
 # just to use it
-Vocabulary()
+# Vocabulary()
+from misc.json_helper import JsonHelper
+
+
+# from image_to_text.build_vocab import Vocabulary
+# from image_to_text.image_to_text_model import ImageToTextModel
+# from vqa.vqa_model import VqaModel
 
 
 class Server:
@@ -26,17 +24,18 @@ class Server:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((host, port))
         self.socket.listen(5)
-        self.image_to_text = ImageToTextModel()
-        self.vqa = VqaModel()
+        # self.image_to_text = ImageToTextModel()
+        # self.vqa = VqaModel()
         print("finish vqa + image to text")
         self.client_socket, self.address = None, None
 
     def handle_client_connection(self, client_socket):
         face_recognition = None
         number_of_faces = 10
+
         try:
             while True:
-                message = Helper.receive_json(client_socket)
+                message = JsonHelper.receive_json(client_socket)
                 # print(message)
                 if message != '':
                     image, question, type, name = Server.get_data(message)
@@ -50,55 +49,23 @@ class Server:
 
                     # Face Recognition
                     elif type == "register-face-recognition":
-                        path = FilePathManager.resolve("face_recognition/recognition/models")
-                        base_model_path = f"{path}/base_model.model"
-                        person_path = f"{path}/{name}"
-                        if os.path.exists(person_path):
-                            rmtree(person_path)
-                        os.makedirs(person_path)
-                        evm_model_path = f"{person_path}/evm.model"
-                        copy2(base_model_path, evm_model_path)
-                        insight_model_path = f"{person_path}/insight.model"
-                        data = dict()
-                        joblib.dump(data, insight_model_path)
-                        result["result"] = "success"
+                        result["result"] = "register-face-recognition"
                         result["registered"] = True
                     elif type == "start-face-recognition":
-                        try:
-                            face_recognition = FaceRecognitionModel(name)
-                            result["result"] = "success"
-                        except FileNotFoundError:
-                            result["result"] = "error"
+                        result["result"] = "start-face-recognition"
                     elif type == "face-recognition":
-                        if face_recognition is not None:
-                            result["result"] = face_recognition.predict(image)
-                        else:
-                            result["result"] = "error"
+                        result["result"] = "face-recognition"
                     elif type == "add-person":
-                        if face_recognition is not None:
-                            images = []
-                            for i in range(number_of_faces):
-                                image, _, _, _ = Server.get_data(message)
-                                images.append(image)
-                            face_recognition.add_person(name, images)
-                            result["result"] = "success"
-                        else:
-                            result["result"] = "error"
+                        result["result"] = "add-person"
                     elif type == "remove-person":
-                        if face_recognition is not None:
-                            face_recognition.remove_person(name)
-                            result["result"] = "success"
-                        else:
-                            result["result"] = "error"
-
+                        result["result"] = "remove-person"
                     # Visual Question Answering
                     elif type == "visual-question-answering":
-                        result["result"] = self.vqa.predict(question, image)
-
+                        result["result"] = 'visual-question-answering'
                     # Image To Text
                     elif type == "image-to-text":
-                        result["result"] = self.image_to_text.predict(image)
-                    Helper.send_json(client_socket, result)
+                        result["result"] = 'image-to-text'
+                    JsonHelper.send_json(client_socket, result)
 
         finally:
             print('client_socket.close')
@@ -119,7 +86,7 @@ class Server:
     @staticmethod
     def to_image(img_data):
         nparr = np.fromstring(base64.decodebytes(img_data.encode()), np.uint8)
-        return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        return img_data
 
     def start(self):
         print('server started at {}:{}'.format(self.host, str(self.port)))
@@ -139,7 +106,7 @@ class Server:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = Server()
+    server = Server(host='192.168.1.4')
 
     try:
         server.start()

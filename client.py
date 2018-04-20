@@ -329,7 +329,7 @@ def to_uniform(word):
 
 
 if __name__ == '__main__':
-    api = ClientAPI(host='192.168.1.3')
+    api = ClientAPI(host='192.168.1.4')
     try:
         api.start()
     finally:
