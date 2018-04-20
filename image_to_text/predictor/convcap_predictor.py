@@ -24,7 +24,7 @@ class ConvcapPredictor(Predictor):
 
     def __init__(self):
         self.max_tokens = 15
-        self.beam_size = 20
+        self.beam_size = 15
         num_layers = 3
         worddict_tmp = pickle.load(open(FilePathManager.resolve('image_to_text/data/wordlist.p'), 'rb'))
         wordlist = [l for l in iter(list(worddict_tmp.keys())) if l != '</S>']
