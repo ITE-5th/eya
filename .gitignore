@@ -1,5 +1,6 @@
 .idea
 models
+trained_models
 data
 mtcnn-model
 vqa/modified_model/caffe

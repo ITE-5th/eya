@@ -16,12 +16,12 @@ class Client:
         self.socket.connect((self.host, self.port))
         json_data = {
             "type": "register-face-recognition",
-            "name": "Obada Jabassini"
+            "name": "zaher"
         }
         self.communicate_with_server(json_data)
         json_data = {
             "type": "start-face-recognition",
-            "name": "Obada Jabassini"
+            "name": "zaher"
         }
         self.communicate_with_server(json_data)
         i = 0
@@ -46,8 +46,7 @@ class Client:
     @staticmethod
     def _build_message(type, question=None):
         if type == "face-recognition":
-            # file_path = FilePathManager.resolve("vqa/test_images/test.jpg")
-            file_path = FilePathManager.resolve("face_recognition/test_images/zaher_2.jpg")
+            file_path = FilePathManager.resolve("face/test_faces/brad-pitt-jennifer-aniston.jpg")
         else:
             file_path = FilePathManager.resolve("vqa/test_images/test.jpg")
         with open(file_path, "rb") as image_file:
@@ -57,5 +56,6 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client()
+    client = Client(port=8888)
+    # client = Client(host="192.168.43.71", port=8888)
     client.start()
