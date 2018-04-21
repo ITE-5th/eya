@@ -64,7 +64,7 @@ class Server:
                         else:
                             result["result"] = "error"
                     elif type == "add-person":
-                        cv2.imwrite(f"{base_path}/image_{len(images)}.jpg", image)
+                        cv2.imwrite(f"{base_path}/image_{len(images) + 1}.jpg", image)
                         images.append(image)
                         result["result"] = "success"
                     elif type == "end-add-person":
@@ -88,8 +88,7 @@ class Server:
                     # Image To Text
                     elif type == "image-to-text":
                         result["result"] = self.image_to_text.predict(image)
-                    if type != "add-person":
-                        JsonHelper.send_json(client_socket, result)
+                    JsonHelper.send_json(client_socket, result)
                     print("result:")
                     print(result)
 

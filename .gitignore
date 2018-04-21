@@ -2,6 +2,7 @@
 models
 trained_models
 data
+saved_images
 mtcnn-model
 vqa/modified_model/caffe
 vqa/modified_model/experiments
