@@ -29,7 +29,7 @@ class Recognizer:
         model = pmdl_path
         # capture SIGINT signal, e.g., Ctrl+C
         signal.signal(signal.SIGINT, self.signal_handler)
-        self.start_detector = snowboydecoder.HotwordDetector(model[0], sensitivity=sensitivity)
+        # self.start_detector = snowboydecoder.HotwordDetector(model[0], sensitivity=sensitivity)
         self.detector = snowboydecoder.HotwordDetector(model[1:], sensitivity=sensitivity)
         self.sphinx = sphinx
         self.google = google
@@ -42,64 +42,62 @@ class Recognizer:
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
                          self.callback_function(data_id='face-recognition'),
-                         self.set_interrupted(value=False)
+                         # self.set_interrupted(value=False)
 
                      ],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
                          self.callback_function(data_id='image-to-text'),
-                         self.set_interrupted(value=False)
+                         # self.set_interrupted(value=False)
 
                      ],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
                          self.callback_function(data_id='ocr'),
-                         self.set_interrupted(value=False)
+                         # self.set_interrupted(value=False)
 
                      ],
                      # set-last-person
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING),
-                         self.set_interrupted(value=False)
+                         # self.set_interrupted(value=False)
 
                      ],
                      # remove-person
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING),
-
                      ]
                      ]
 
         acallbacks = [
             lambda fname: [
                 self.callback_function(fname, data_id='visual-question-answering'),
-                self.set_interrupted(value=False)
+                # self.set_interrupted(value=False)
             ],
             None, None, None,
             lambda fname: [
                 self.callback_function(fname, data_id='set-last-person'),
-                self.set_interrupted(value=False)
+                # self.set_interrupted(value=False)
             ],
             lambda fname: [
                 self.callback_function(fname, data_id='remove-person')],
-            self.set_interrupted(value=False)
+            # self.set_interrupted(value=False)
         ]
 
         # main loop
         while Running:
             print('\033[93m' + 'Listening... ' + '\033[0m')
-
-            self.start_detector.start(detected_callback=[
-                lambda: [self.start_detected_callback(), snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)]],
-                interrupt_check=self.interrupt_start_callback,
-                sleep_time=0.01)
-
-            self.start_detector.terminate()
+            #
+            # self.start_detector.start(detected_callback=[
+            #     lambda: [self.start_detected_callback(), snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)]],
+            #     interrupt_check=self.interrupt_start_callback,
+            #     sleep_time=0.01)
+            # self.start_detector.terminate()
             self.detector.start(detected_callback=callbacks,
                                 audio_recorder_callback=acallbacks,
                                 interrupt_check=self.interrupt_callback,
                                 sleep_time=0.01)
-            self.detector.terminate()
+            # self.detector.terminate()
 
     def start_detected_callback(self):
         global interrupted
@@ -116,7 +114,8 @@ class Recognizer:
 
     def interrupt_callback(self):
         global interrupted, Running
-        return not Running or not interrupted
+        # return not Running or not interrupted
+        return not Running or interrupted
 
     def interrupt_start_callback(self):
         global interrupted, Running
