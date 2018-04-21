@@ -22,7 +22,7 @@ class ConvcapPredictor(Predictor):
                              std=[0.229, 0.224, 0.225])
     ])
 
-    def __init__(self, beam_size: int = 5):
+    def __init__(self, beam_size: int = 20):
         self.max_tokens = 15
         self.beam_size = beam_size
         num_layers = 3

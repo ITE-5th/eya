@@ -129,8 +129,8 @@ class Server:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    # server = Server(port=8888)
-    server = Server(host="192.168.1.7", port=8888)
+    server = Server(port=8888)
+    # server = Server(host="192.168.1.7", port=8888)
 
     try:
         server.start()
