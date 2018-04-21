@@ -15,7 +15,7 @@ from file_path_manager import FilePathManager
 
 class SimilarityPredictor:
 
-    def __init__(self, model_path, extractor: BaseExtractor = DLibExtractor(), threshold: float = 0.93, align=True):
+    def __init__(self, model_path, extractor: BaseExtractor = DLibExtractor(), threshold: float = 0.935, align=True):
         super().__init__()
         self.pipeline = Pipeline([
             DLibDetector(scale=1),
