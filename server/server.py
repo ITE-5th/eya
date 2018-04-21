@@ -11,6 +11,7 @@ from face.face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from image_to_text.image_to_text_model import ImageToTextModel
 from misc.json_helper import JsonHelper
+from server.handler_factory import HandlerFactory
 from vqa.vqa_model import VqaModel
 
 # just to use it
@@ -27,6 +28,29 @@ class Server:
         self.image_to_text = ImageToTextModel()
         self.vqa = VqaModel()
         self.client_socket, self.address = None, None
+
+    def handle_test_client(self, client_socket):
+        factory = HandlerFactory()
+        try:
+            while True:
+                message = JsonHelper.receive_json(client_socket)
+                if message != "":
+                    print("message:")
+                    print(message)
+                    image, question, type, name = Server.get_data(message)
+                    if name is not None:
+                        name = name.lower().replace(" ", "_")
+                    if type == "close":
+                        break
+                    handler = factory.create(type, name)
+                    result = handler.handle(image, question, type, name)
+                    JsonHelper.send_json(client_socket, result)
+                    print("result:")
+                    print(result)
+
+        finally:
+            print('client_socket.close')
+            client_socket.close()
 
     def handle_client_connection(self, client_socket):
         face_recognition = None
