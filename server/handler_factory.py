@@ -1,5 +1,3 @@
-from enum import Enum
-
 from image_to_text_model import ImageToTextModel
 from server.face_recognition_handler import FaceRecognitionHandler
 from server.image_to_text_handler import ImageToTextHandler
@@ -15,25 +13,15 @@ class HandlerFactory:
         self.face_recognition_models = dict()
 
     def create(self, type, name=None):
-        if type == Type.VQA:
+        if type == "visual-question-answering":
             return VqaHandler(self.vqa)
-        if type == Type.ITT:
+        if type == "image-to-text":
             return ImageToTextHandler(self.image_to_text)
-        if type == Type.RFR:
+        if type == "register-face-recognition":
             return RegisterFaceRecognitionHandler()
-        if type in [Type.SFR, Type.AP, Type.EAP, Type.RP]:
-            if name in self.face_recognition_models:
-                return self.face_recognition_models[name]
+        if type == "start-face-recognition":
             temp = FaceRecognitionHandler(name)
             self.face_recognition_models[name] = temp
             return temp
-
-
-class Type(Enum):
-    VQA = "visual-question-answering"
-    ITT = "image-to-text"
-    RFR = "register-face-recognition"
-    SFR = "start-face-recognition"
-    AP = "add-person"
-    EAP = "end-add-person"
-    RP = "remove-person"
+        if type in ["face-recognition", "add-person", "end-add-person", "remove-person"]:
+            return self.face_recognition_models[name]

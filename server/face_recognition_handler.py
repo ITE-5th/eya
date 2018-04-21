@@ -15,25 +15,18 @@ class FaceRecognitionHandler(Handler):
         self.base_path = FilePathManager.resolve("saved_images")
 
     def handle(self, image, question, type, name):
-        if type == Type.FACE_RECOGNITION:
+        if type == "face-recognition":
             return {
                 "result": self.face_recognition.predict(image)
             }
-        if type == Type.ADD_PERSON:
+        if type == "add-person":
             cv2.imwrite(f"{self.base_path}/image_{len(self.images) + 1}.jpg", image)
             self.images.append(image)
-        if type == Type.END_ADD_PERSON:
+        if type == "end-add-person":
             self.face_recognition.add_person(name, self.images)
             self.images = []
-        if type == Type.REMOVE_PERSON:
+        if type == "remove-person":
             self.face_recognition.remove_person(name)
         return {
             "result": "success"
         }
-
-
-class Type(Enum):
-    FACE_RECOGNITION = "face-recognition"
-    ADD_PERSON = "add-person"
-    REMOVE_PERSON = "remove-person"
-    END_ADD_PERSON = "end-add-person"

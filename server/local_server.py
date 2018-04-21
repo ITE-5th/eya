@@ -18,7 +18,7 @@ from vqa.vqa_model import VqaModel
 Vocabulary()
 
 
-class Server:
+class LocalServer:
     def __init__(self, host=socket.gethostname(), port=9000):
         self.host = host
         self.port = port
@@ -37,7 +37,7 @@ class Server:
                 if message != "":
                     print("message:")
                     print(message)
-                    image, question, type, name = Server.get_data(message)
+                    image, question, type, name = LocalServer.get_data(message)
                     if name is not None:
                         name = name.lower().replace(" ", "_")
                     if type == "close":
@@ -62,7 +62,7 @@ class Server:
                 print(message)
                 base_path = FilePathManager.resolve("saved_images")
                 if message != '':
-                    image, question, type, name = Server.get_data(message)
+                    image, question, type, name = LocalServer.get_data(message)
                     if name is not None:
                         name = name.lower().replace(" ", "_")
                     result = {
@@ -122,9 +122,10 @@ class Server:
 
     @staticmethod
     def get_data(message):
-        image = Server.get(message, "image")
-        image = Server.to_image(image) if image is not None else None
-        return image, Server.get(message, "question"), Server.get(message, "type"), Server.get(message, "name")
+        image = LocalServer.get(message, "image")
+        image = LocalServer.to_image(image) if image is not None else None
+        return image, LocalServer.get(message, "question"), LocalServer.get(message, "type"), LocalServer.get(message,
+                                                                                                              "name")
 
     @staticmethod
     def get(message, attr):
@@ -153,7 +154,7 @@ class Server:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = Server(port=8888)
+    server = LocalServer(port=8888)
     # server = Server(host="192.168.1.7", port=8888)
 
     try:
