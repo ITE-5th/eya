@@ -8,6 +8,7 @@ import numpy as np
 
 from encoder_decoder.build_vocab import Vocabulary
 from face.face_recognition_model import FaceRecognitionModel
+from file_path_manager import FilePathManager
 from image_to_text.image_to_text_model import ImageToTextModel
 from misc.json_helper import JsonHelper
 from vqa.vqa_model import VqaModel
@@ -29,25 +30,26 @@ class Server:
 
     def handle_client_connection(self, client_socket):
         face_recognition = None
-        number_of_faces = 10
         try:
+            images = []
             while True:
                 message = JsonHelper.receive_json(client_socket)
                 print("message:")
                 print(message)
+                base_path = FilePathManager.resolve("saved_images")
                 if message != '':
                     image, question, type, name = Server.get_data(message)
                     if name is not None:
                         name = name.lower().replace(" ", "_")
                     result = {
-                        "result": "error",
+                        "result": "success",
                     }
                     if type == 'close':
                         break
 
                     # Face Recognition
                     elif type == "register-face-recognition":
-                        FaceRecognitionModel.register(name, remove_dir=True)
+                        FaceRecognitionModel.register(name, remove_dir=False)
                         result["result"] = "success"
                         result["registered"] = True
                     elif type == "start-face-recognition":
@@ -62,12 +64,13 @@ class Server:
                         else:
                             result["result"] = "error"
                     elif type == "add-person":
+                        cv2.imwrite(f"{base_path}/image_{len(images)}.jpg", image)
+                        images.append(image)
+                        result["result"] = "success"
+                    elif type == "end-add-person":
                         if face_recognition is not None:
-                            images = []
-                            for i in range(number_of_faces):
-                                image, _, _, _ = Server.get_data(message)
-                                images.append(image)
                             face_recognition.add_person(name, images)
+                            images = []
                             result["result"] = "success"
                         else:
                             result["result"] = "error"
@@ -85,7 +88,8 @@ class Server:
                     # Image To Text
                     elif type == "image-to-text":
                         result["result"] = self.image_to_text.predict(image)
-                    JsonHelper.send_json(client_socket, result)
+                    if type != "add-person":
+                        JsonHelper.send_json(client_socket, result)
                     print("result:")
                     print(result)
 
@@ -96,10 +100,8 @@ class Server:
     @staticmethod
     def get_data(message):
         image = Server.get(message, "image")
-        return Server.to_image(image) if image is not None else None, \
-               Server.get(message, "question"), \
-               Server.get(message, "type"), \
-               Server.get(message, "name")
+        image = Server.to_image(image) if image is not None else None
+        return image, Server.get(message, "question"), Server.get(message, "type"), Server.get(message, "name")
 
     @staticmethod
     def get(message, attr):
@@ -128,8 +130,8 @@ class Server:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = Server(port=8888)
-    # server = Server(host="192.168.43.71", port=8888)
+    # server = Server(port=8888)
+    server = Server(host="192.168.1.7", port=8888)
 
     try:
         server.start()

@@ -11,7 +11,7 @@ from bases.pipeline import Pipeline
 from detectors.dlib_detector import DLibDetector
 from extractors.base_extractor import BaseExtractor
 from file_path_manager import FilePathManager
-from misc.utils import Utils
+from face.misc.utils import Utils
 
 
 class DLibExtractor(BaseExtractor):

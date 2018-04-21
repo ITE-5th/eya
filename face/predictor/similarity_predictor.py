@@ -5,23 +5,21 @@ import joblib
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-from aligners.no_aligner import NoAligner
-from aligners.one_millisecond_aligner import OneMillisecondAligner
 from bases.pipeline import Pipeline
 from classifiers.evm import EVM
 from detectors.dlib_detector import DLibDetector
 from extractors.base_extractor import BaseExtractor
-from extractors.vgg_extractor import VggExtractor
+from extractors.dlib_extractor import DLibExtractor
 from file_path_manager import FilePathManager
 
 
 class SimilarityPredictor:
 
-    def __init__(self, model_path, extractor: BaseExtractor = VggExtractor(), threshold: float = 0.7, align=True):
+    def __init__(self, model_path, extractor: BaseExtractor = DLibExtractor(), threshold: float = 0.93, align=True):
         super().__init__()
         self.pipeline = Pipeline([
             DLibDetector(scale=1),
-            OneMillisecondAligner(extractor.resize.size) if align else NoAligner(),
+            # OneMillisecondAligner(extractor.resize.size) if align else NoAligner(),
             extractor
         ])
         self.model_path = model_path
