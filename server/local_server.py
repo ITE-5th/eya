@@ -141,7 +141,6 @@ class LocalServer:
         while True:
             client_socket, address = self.socket.accept()
             print('Accepted connection from {}:{}'.format(address[0], address[1]))
-
             client_handler = threading.Thread(
                 target=self.handle_client_connection,
                 args=(client_socket,)
