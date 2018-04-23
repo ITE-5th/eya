@@ -12,6 +12,7 @@ from file_path_manager import FilePathManager
 from image_to_text.image_to_text_model import ImageToTextModel
 from misc.connection_helper import ConnectionHelper
 from server.message.add_person_message import AddPersonMessage
+from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
@@ -48,7 +49,7 @@ class LocalServer:
                 result = {
                     "result": "success",
                 }
-                if type == 'close':
+                if isinstance(message, CloseMessage):
                     break
                 if isinstance(message, ImageMessage):
                     image = self.to_image(message.image)
@@ -102,17 +103,6 @@ class LocalServer:
         finally:
             print('client_socket.close')
             client_socket.close()
-
-    @staticmethod
-    def get_data(message):
-        image = LocalServer.get(message, "image")
-        image = LocalServer.to_image(image) if image is not None else None
-        return image, LocalServer.get(message, "question"), LocalServer.get(message, "type"), LocalServer.get(message,
-                                                                                                              "name")
-
-    @staticmethod
-    def get(message, attr):
-        return message[attr] if attr in message else None
 
     @staticmethod
     def to_image(img_data):
