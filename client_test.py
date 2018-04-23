@@ -2,7 +2,12 @@ import base64
 import socket
 
 from file_path_manager import FilePathManager
-from misc.json_helper import JsonHelper
+from misc.connection_helper import ConnectionHelper
+from server.message.face_recognition_message import FaceRecognitionMessage
+from server.message.image_to_text_message import ImageToTextMessage
+from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
+from server.message.start_face_recognition_message import StartFaceRecognitionMessage
+from server.message.vqa_message import VqaMessage
 
 
 class Client:
@@ -14,16 +19,9 @@ class Client:
     def start(self):
         print('connected to server ' + self.host + ':' + str(self.port))
         self.socket.connect((self.host, self.port))
-        json_data = {
-            "type": "register-face-recognition",
-            "name": "zaher"
-        }
-        self.communicate_with_server(json_data)
-        json_data = {
-            "type": "start-face-recognition",
-            "name": "zaher"
-        }
-        self.communicate_with_server(json_data)
+        name = "zaher"
+        self.communicate_with_server(RegisterFaceRecognitionMessage(name))
+        self.communicate_with_server(StartFaceRecognitionMessage(name))
         i = 0
         while True:
             if i % 3 == 0:
@@ -39,8 +37,8 @@ class Client:
         self.socket.close()
 
     def communicate_with_server(self, message):
-        JsonHelper.send_json(self.socket, message)
-        response = JsonHelper.receive_json(self.socket)
+        ConnectionHelper.send_pickle(self.socket, message)
+        response = ConnectionHelper.receive_json(self.socket)
         print(response)
 
     @staticmethod
@@ -51,8 +49,13 @@ class Client:
             file_path = FilePathManager.resolve("vqa/test_images/test.jpg")
         with open(file_path, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-        json_data = {"type": type, "image": encoded_string, "question": question}
-        return json_data
+        if type == "face-recognition":
+            message = FaceRecognitionMessage(encoded_string)
+        elif type == "visual-question-answering":
+            message = VqaMessage(encoded_string, question)
+        else:
+            message = ImageToTextMessage(encoded_string)
+        return message
 
 
 if __name__ == '__main__':
