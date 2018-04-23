@@ -107,9 +107,8 @@ class RequestHandler:
         return result
 
     def start(self, client_socket):
-        while True:
-            try:
-                print("test")
+        try:
+            while True:
                 message = ConnectionHelper.receive_pickle(client_socket)
                 if isinstance(message, CloseMessage):
                     break
@@ -119,6 +118,6 @@ class RequestHandler:
                 ConnectionHelper.send_json(client_socket, result)
                 print("result:")
                 print(result)
-            finally:
-                print('client_socket.close')
-                client_socket.close()
+        finally:
+            print("socket closed")
+            client_socket.close()
