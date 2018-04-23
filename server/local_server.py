@@ -116,8 +116,7 @@ class LocalServer:
 
     @staticmethod
     def to_image(img_data):
-        nparr = np.fromstring(base64.decodebytes(img_data.encode()), np.uint8)
-        return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        return cv2.imdecode(np.fromstring(base64.decodebytes(img_data.encode()), np.uint8), cv2.IMREAD_COLOR)
 
     def start(self):
         print('server started at {}:{}'.format(self.host, str(self.port)))
