@@ -11,7 +11,6 @@ from face.face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from image_to_text.image_to_text_model import ImageToTextModel
 from misc.connection_helper import ConnectionHelper
-from server.handler_factory import HandlerFactory
 from server.message.add_person_message import AddPersonMessage
 from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
@@ -39,30 +38,7 @@ class LocalServer:
         self.vqa = VqaModel()
         self.client_socket, self.address = None, None
 
-    def handle_test_client(self, client_socket):
-        factory = HandlerFactory()
-        try:
-            while True:
-                message = ConnectionHelper.receive_json(client_socket)
-                if message != "":
-                    print("message:")
-                    print(message)
-                    image, question, type, name = LocalServer.get_data(message)
-                    if name is not None:
-                        name = name.lower().replace(" ", "_")
-                    if type == "close":
-                        break
-                    handler = factory.create(type, name)
-                    result = handler.handle(image, question, type, name)
-                    ConnectionHelper.send_json(client_socket, result)
-                    print("result:")
-                    print(result)
-
-        finally:
-            print('client_socket.close')
-            client_socket.close()
-
-    def handle_client_connection_message(self, client_socket):
+    def handle_client_connection(self, client_socket):
         images = []
         base_path = FilePathManager.resolve("saved_images")
         try:
@@ -127,74 +103,6 @@ class LocalServer:
             print('client_socket.close')
             client_socket.close()
 
-    def handle_client_connection(self, client_socket):
-        face_recognition = None
-        try:
-            images = []
-            while True:
-                message = ConnectionHelper.receive_json(client_socket)
-                print("message:")
-                print(message)
-                base_path = FilePathManager.resolve("saved_images")
-                if message != '':
-                    image, question, type, name = LocalServer.get_data(message)
-                    if name is not None:
-                        name = name.lower().replace(" ", "_")
-                    result = {
-                        "result": "success",
-                    }
-                    if type == 'close':
-                        break
-
-                    # Face Recognition
-                    elif type == "register-face-recognition":
-                        FaceRecognitionModel.register(name, remove_dir=False)
-                        result["result"] = "success"
-                        result["registered"] = True
-                    elif type == "start-face-recognition":
-                        try:
-                            face_recognition = FaceRecognitionModel(name)
-                            result["result"] = "success"
-                        except FileNotFoundError:
-                            result["result"] = "error"
-                    elif type == "face-recognition":
-                        if face_recognition is not None:
-                            result["result"] = face_recognition.predict(image)
-                        else:
-                            result["result"] = "error"
-                    elif type == "add-person":
-                        cv2.imwrite(f"{base_path}/image_{len(images) + 1}.jpg", image)
-                        images.append(image)
-                        result["result"] = "success"
-                    elif type == "end-add-person":
-                        if face_recognition is not None:
-                            face_recognition.add_person(name, images)
-                            images = []
-                            result["result"] = "success"
-                        else:
-                            result["result"] = "error"
-                    elif type == "remove-person":
-                        if face_recognition is not None:
-                            face_recognition.remove_person(name)
-                            result["result"] = "success"
-                        else:
-                            result["result"] = "error"
-
-                    # Visual Question Answering
-                    elif type == "visual-question-answering":
-                        result["result"] = self.vqa.predict(question, image)
-
-                    # Image To Text
-                    elif type == "image-to-text":
-                        result["result"] = self.image_to_text.predict(image)
-                    ConnectionHelper.send_json(client_socket, result)
-                    print("result:")
-                    print(result)
-
-        finally:
-            print('client_socket.close')
-            client_socket.close()
-
     @staticmethod
     def get_data(message):
         image = LocalServer.get(message, "image")
@@ -217,7 +125,7 @@ class LocalServer:
             client_socket, address = self.socket.accept()
             print('Accepted connection from {}:{}'.format(address[0], address[1]))
             client_handler = threading.Thread(
-                target=self.handle_client_connection_message,
+                target=self.handle_client_connection,
                 args=(client_socket,)
             )
             client_handler.start()
