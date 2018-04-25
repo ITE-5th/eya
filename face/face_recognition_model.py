@@ -23,7 +23,7 @@ class FaceRecognitionModel:
             raise FileNotFoundError("The model was not found")
 
     @staticmethod
-    def register(name, remove_dir=True):
+    def register(name, remove_dir=False):
         path = FilePathManager.resolve("face/trained_models")
         base_model_path = f"{path}/base_model.model"
         person_path = f"{path}/{name}"

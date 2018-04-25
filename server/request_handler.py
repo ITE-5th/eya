@@ -41,6 +41,7 @@ class RequestHandler:
         }
         try:
             self.face_recognition = FaceRecognitionModel(message.name)
+            print(self.face_recognition)
             result["result"] = "success"
         except FileNotFoundError:
             result["result"] = "error"
@@ -90,6 +91,7 @@ class RequestHandler:
             result["result"] = self.face_recognition.predict(message.image)
         else:
             result["result"] = "error"
+        print(result)
         return result
 
     @dispatch(VqaMessage)
