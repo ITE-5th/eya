@@ -1,5 +1,5 @@
-import os
 import time
+import os
 
 
 class TTS:
@@ -19,8 +19,12 @@ class TTS:
 
         if self.Pico:
             print('Pico Text to Speech')
-            fname = time.strftime("%Y%m%d-%H%M%S") + '.wav'
-            cmd = 'pico2wave -w ' + fname + ' "' + message + '" && aplay ' + fname + '.wav'
+            temp_dir = './temp/'
+            if not os.path.exists(temp_dir):
+                os.makedirs(temp_dir)
+
+            fname = temp_dir + time.strftime("%Y%m%d-%H%M%S") + '.wav'
+            cmd = 'pico2wave -w ' + fname + ' "' + message + '" && aplay ' + fname
             os.system(cmd)
             # os.remove(fname)
 

@@ -15,7 +15,7 @@ class LocalServer:
         self.client_socket, self.address = None, None
 
     def handle_client_connection(self, client_socket):
-        handler = RequestHandler(self.vqa, self.image_to_text)
+        handler = RequestHandler()
         handler.start(client_socket)
 
     def start(self):
@@ -35,8 +35,8 @@ class LocalServer:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = LocalServer(port=8888)
-    # server = LocalServer(host="192.168.43.71", port=8888)
+    # server = LocalServer(port=8888)
+    server = LocalServer(host="192.168.1.4", port=8888)
     try:
         server.start()
     finally:

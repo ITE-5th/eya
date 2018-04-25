@@ -3,6 +3,7 @@ from multipledispatch import dispatch
 
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
+from misc.image_helper import ImageHelper
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
@@ -67,19 +68,18 @@ class RequestHandler:
         result = {"result": "image to text"}
         return result
 
-
-def start(self, client_socket):
-    try:
-        while True:
-            message = ConnectionHelper.receive_pickle(client_socket)
-            if isinstance(message, CloseMessage):
-                break
-            if isinstance(message, ImageMessage):
-                message.image = ConnectionHelper.to_image(message.image)
-            result = self.handle_message(message)
-            ConnectionHelper.send_json(client_socket, result)
-            print("result:")
-            print(result)
-    finally:
-        print("socket closed")
-        client_socket.close()
+    def start(self, client_socket):
+        try:
+            while True:
+                message = ConnectionHelper.receive_pickle(client_socket)
+                if isinstance(message, CloseMessage):
+                    break
+                if isinstance(message, ImageMessage):
+                    message.image = ImageHelper.to_image(message.image)
+                result = self.handle_message(message)
+                ConnectionHelper.send_json(client_socket, result)
+                print("result:")
+                print(result)
+        finally:
+            print("socket closed")
+            client_socket.close()

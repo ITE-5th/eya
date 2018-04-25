@@ -60,22 +60,26 @@ class ClientAPI:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         try:
-            images = 0
+            images = 1
             while Running:
                 button_state = GPIO.input(23)
                 if not button_state:
                     if self.last_person is None:
                         print('please say add person')
                     else:
-                        print('taking photo')
-                        self.data_callback(data_id=ADD_PERSON)
-                        # images count per user
-                        images += 1
-                        if images >= 10:
-                            self.data_callback(data_id=END_ADD_PERSON)
+                        self.tts.say(f'image number is . {images} . for user . {self.last_person} . ')
+                        success = self.data_callback(data_id=ADD_PERSON)
+                        if success:
+                            self.tts.say(f'image successfully added . ')
 
-                            self.last_person = None
-                            images = 0
+                            # images count per user
+                            if images >= 10:
+                                self.data_callback(data_id=END_ADD_PERSON)
+                                self.last_person = None
+                                images = 0
+
+                            images += 1
+
                     time.sleep(1)
                 time.sleep(0.05)
         except Exception as e:
@@ -92,7 +96,7 @@ class ClientAPI:
                 # First Run
                 self.data_callback(data_id=REGISTER_FACE)
                 self.tts.say('Please Say your Name .')
-                self.speaker_name = self.speech_to_text(self.id + '.wav', mic=True)
+                self.speaker_name = self.speech_to_text('./temp/' + self.id + '.wav', mic=True)
                 self.write_config('id', self.id)
                 self.write_config('u_name', self.speaker_name)
             else:
@@ -149,7 +153,8 @@ class ClientAPI:
             message = self._build_message(data_id)
 
         if message is not None:
-            self.communicate_with_server(message)
+            return self.communicate_with_server(message)
+        return False
 
     def get_speaker(self, fname):
         # Speaker() used for import speaker class only
@@ -196,7 +201,7 @@ class ClientAPI:
 
     def communicate_with_server(self, message):
         if self.last_msg == OCR_MSG:
-            response = OCR.get_text()
+            response = OCR.get_text(message.image)
         else:
             ConnectionHelper.send_pickle(self.socket, message)
             response = ConnectionHelper.receive_json(self.socket)
@@ -207,6 +212,7 @@ class ClientAPI:
             print('registering')
         print(response)
         self.say_message(response['result'])
+        return True
 
     def write_config(self, field, data):
         self.configParser.set('user-data', field, data)
@@ -261,11 +267,12 @@ class ClientAPI:
     def _build_message(self, type, text_from_speech=None):
         self.last_msg = type
         if type == ADD_PERSON:
-            image = self.take_image(face_count=1)
+            image, _ = self.take_image(face_count=1)
             return AddPersonMessage(image) if image is not None else None
 
         if type == OCR_MSG:
-            return OcrMessage()
+            _, fname = self.take_image()
+            return OcrMessage(fname)
 
         elif type == END_ADD_PERSON:
             return EndAddPersonMessage(self.last_person)
@@ -280,22 +287,22 @@ class ClientAPI:
             return RemovePersonMessage(text_from_speech)
 
         elif type == IMAGE_TO_TEXT:
-            image = self.take_image()
+            image, _ = self.take_image()
             return ImageToTextMessage(image) if image is not None else None
 
         elif type == VQA:
-            image = self.take_image()
+            image, _ = self.take_image()
             return VqaMessage(image, text_from_speech) if image is not None else None
 
         elif type == FACE_RECOGNITION:
-            image = self.take_image()
+            image, _ = self.take_image()
             return FaceRecognitionMessage(image) if image is not None else None
 
         return None
 
 
 def main(args):
-    api = ClientAPI(host=args.ip, port=args.port)
+    api = ClientAPI(host=args.host, port=args.port)
     try:
         api.start()
     finally:

@@ -4,6 +4,7 @@ from multipledispatch import dispatch
 from face.face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
+from misc.image_helper import ImageHelper
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
@@ -27,7 +28,6 @@ class RequestHandler:
     @dispatch(RegisterFaceRecognitionMessage)
     def handle_message(self, message):
         result = {
-
         }
         FaceRecognitionModel.register(message.name, remove_dir=False)
         result["result"] = "success"
@@ -114,7 +114,7 @@ class RequestHandler:
                 if isinstance(message, CloseMessage):
                     break
                 if isinstance(message, ImageMessage):
-                    message.image = ConnectionHelper.to_image(message.image)
+                    message.image = ImageHelper.to_image(message.image)
                 result = self.handle_message(message)
                 ConnectionHelper.send_json(client_socket, result)
                 print("result:")
