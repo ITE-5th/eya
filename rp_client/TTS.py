@@ -1,5 +1,7 @@
 import os
 import time
+
+
 class TTS:
     def __init__(self, festival=True, espeak=True, pico=True):
         self.Festival = festival
@@ -17,12 +19,11 @@ class TTS:
 
         if self.Pico:
             print('Pico Text to Speech')
-            fname = time.strftime("%Y%m%d-%H%M%S")
-            cmd = 'pico2wave -w '+fname+'.wav "' + message + '" && aplay '+fname+'.wav'
+            fname = time.strftime("%Y%m%d-%H%M%S") + '.wav'
+            cmd = 'pico2wave -w ' + fname + ' "' + message + '" && aplay ' + fname + '.wav'
             os.system(cmd)
-            #os.remove('voice.wav')
+            # os.remove(fname)
 
 
 if __name__ == '__main__':
     TTS(festival=False, espeak=False, pico=True).say('Hello World')
-
