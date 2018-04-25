@@ -18,6 +18,16 @@ def remove_module(state):
     return new_state
 
 
+def modify_state_dict(state):
+    new_state = {}
+    for k, v in state.items():
+        if len(v.size()) == 1 and v.size(0) == 1:
+            new_state[k] = torch.tensor(state[k][0])
+        else:
+            new_state[k] = state[k]
+    return new_state
+
+
 label2ans = pickle.load(open(FilePathManager.resolve("vqa/modified_model/data/trainval_label2ans.pkl"), 'rb'))
 dictionary = Dictionary.load_from_file(FilePathManager.resolve('vqa/modified_model/data/dictionary.pkl'))
 models = []
@@ -29,7 +39,7 @@ for path in paths:
         "v_dim"], 1024
     net = build_baseline0_newatt_test(ntokens, v_dim, num_answers, num_hidden)
     state = remove_module(checkpoint["state_dict"])
-    net.load_state_dict(state)
+    net.load_state_dict(modify_state_dict(state))
     net.eval()
     # net = net.cuda()
     for param in net.parameters():
@@ -49,7 +59,7 @@ class Predictor:
         spatial_features = Variable(torch.FloatTensor(spatial_features).unsqueeze(0))
         result = self.predict_from_models(image_features, spatial_features, question)
         values, indices = result.topk(self.k)
-        return [(str(label2ans[i]), value) for i, value in zip(indices, values)]
+        return [(str(label2ans[i]), value.item()) for i, value in zip(indices, values)]
 
     def predict_from_models(self, image_features, spatial_features, question):
         result = torch.zeros(1, num_answers)
