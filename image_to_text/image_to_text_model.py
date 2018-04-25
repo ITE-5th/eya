@@ -2,8 +2,8 @@ import cv2
 
 from file_path_manager import FilePathManager
 from image_to_text.predictor.predictor import Predictor
-from predictor.convcap_predictor import ConvcapPredictor
-from predictor.encoder_decoder_predictor import EncoderDecoderPredictor
+from image_to_text.predictor.convcap_predictor import ConvcapPredictor
+from image_to_text.predictor.encoder_decoder_predictor import EncoderDecoderPredictor
 
 
 class ImageToTextModel:

@@ -1,6 +1,5 @@
 import os
 import socket
-import threading
 
 from encoder_decoder.build_vocab import Vocabulary
 from image_to_text.image_to_text_model import ImageToTextModel
@@ -31,11 +30,12 @@ class LocalServer:
         while True:
             client_socket, address = self.socket.accept()
             print('Accepted connection from {}:{}'.format(address[0], address[1]))
-            client_handler = threading.Thread(
-                target=self.handle_client_connection,
-                args=(client_socket,)
-            )
-            client_handler.start()
+            # client_handler = threading.Thread(
+            #     target=self.handle_client_connection,
+            #     args=(client_socket,)
+            # )
+            # client_handler.start()
+            self.handle_client_connection(client_socket)
 
     def close(self):
         self.socket.close()
@@ -43,7 +43,7 @@ class LocalServer:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = LocalServer(port=9000)
+    server = LocalServer(port=7777)
     # server = LocalServer(host="192.168.43.71", port=8888)
 
     try:

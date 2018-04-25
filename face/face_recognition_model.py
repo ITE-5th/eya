@@ -54,5 +54,5 @@ class FaceRecognitionModel:
 
 if __name__ == '__main__':
     model = FaceRecognitionModel("zaher")
-    face = cv2.imread(FilePathManager.resolve("face/test_faces/20.jpg"))
+    face = cv2.imread(FilePathManager.resolve("face/test_faces/brad-pitt-jennifer-aniston.jpg"))
     print(model.predict(face))
