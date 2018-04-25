@@ -1,6 +1,7 @@
 import os
 from shutil import rmtree, copy2
 
+import cv2
 import joblib
 
 from face.predictor.evm_predictor import EvmPredictor
@@ -49,3 +50,9 @@ class FaceRecognitionModel:
         temp = self.predictor.predict_from_image(face)
         temp = [f"{x[0]} {x[1]}" for x in temp]
         return ",".join(temp)
+
+
+if __name__ == '__main__':
+    model = FaceRecognitionModel("zaher")
+    face = cv2.imread(FilePathManager.resolve("face/test_faces/20.jpg"))
+    print(model.predict(face))
