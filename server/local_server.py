@@ -1,10 +1,6 @@
-import base64
 import os
 import socket
 import threading
-
-import cv2
-import numpy as np
 
 from encoder_decoder.build_vocab import Vocabulary
 from image_to_text.image_to_text_model import ImageToTextModel
