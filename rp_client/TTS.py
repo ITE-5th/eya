@@ -20,7 +20,7 @@ class TTS:
         if self.Pico:
             print('Pico Text to Speech')
             fname = time.strftime("%Y%m%d-%H%M%S") + '.wav'
-            cmd = 'pico2wave -w ' + fname + ' "' + message + '" && aplay ' + fname + '.wav'
+            cmd = 'pico2wave -w ' + fname + ' "' + message + '" && aplay ' + fname
             os.system(cmd)
             # os.remove(fname)
 

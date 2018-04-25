@@ -265,6 +265,7 @@ class ClientAPI:
             return AddPersonMessage(image) if image is not None else None
 
         if type == OCR_MSG:
+            self.take_image()
             return OcrMessage()
 
         elif type == END_ADD_PERSON:
