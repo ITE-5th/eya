@@ -28,6 +28,7 @@ def modify_state_dict(state):
     return new_state
 
 
+use_cuda = False
 label2ans = pickle.load(open(FilePathManager.resolve("vqa/modified_model/data/trainval_label2ans.pkl"), 'rb'))
 dictionary = Dictionary.load_from_file(FilePathManager.resolve('vqa/modified_model/data/dictionary.pkl'))
 models = []
@@ -41,7 +42,8 @@ for path in paths:
     state = remove_module(checkpoint["state_dict"])
     net.load_state_dict(modify_state_dict(state))
     net.eval()
-    # net = net.cuda()
+    if use_cuda:
+        net = net.cuda()
     for param in net.parameters():
         param.requires_grad = False
     models.append(net)
