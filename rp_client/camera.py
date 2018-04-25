@@ -1,7 +1,7 @@
 import base64
+import time
 
 import picamera
-import time
 
 pi_camera = picamera.PiCamera()
 
@@ -14,15 +14,22 @@ class Camera:
         self.camera.hflip = hflip
         self.camera.resolution = (width, height)
 
-    def take_image(self, file_name='./temp/Image.jpg', face_count=0):
+    def take_image(self, face_count=0):
+        import os
+        temp_dir = './temp/'
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+
+        file_name = temp_dir + time.strftime("%Y%m%d-%H%M%S") + '.jpg'
+
         self.camera.capture(file_name)
         with open(file_name, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
         if face_count > 0:
-            return encoded_string if self.check_faces(file_name=file_name, faces_count=face_count) else -1
+            return encoded_string, file_name if self.check_faces(file_name=file_name, faces_count=face_count) else -1
         # with open("../Image.jpg", "rb") as image_file:
         #     encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
-        return encoded_string
+        return encoded_string, file_name
 
     def check_faces(self, file_name='./temp/Image.jpg', faces_count=1):
         import dlib
