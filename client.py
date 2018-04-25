@@ -1,3 +1,4 @@
+import argparse
 import configparser
 import socket
 import threading
@@ -9,18 +10,30 @@ import speech_recognition as sr
 # from rp_client.speaker import Speaker
 # from rp_client.speaker import SpeakersModel
 from misc.connection_helper import ConnectionHelper
+from misc.text_normalizer import to_uniform
 from rp_client.TTS import TTS
 from rp_client.camera import Camera
 from rp_client.ocr import OCR
 from rp_client.recognizer import Recognizer
+from server.message.add_person_message import AddPersonMessage
+from server.message.close_message import CloseMessage
+from server.message.end_add_person_message import EndAddPersonMessage
+from server.message.face_recognition_message import FaceRecognitionMessage
+from server.message.image_to_text_message import ImageToTextMessage
+from server.message.ocr_message import OcrMessage
+from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
+from server.message.remove_person_message import RemovePersonMessage
+from server.message.start_face_recognition_message import StartFaceRecognitionMessage
+from server.message.vqa_message import VqaMessage
 
 Running = True
 # MESSAGE TYPES
+END_ADD_PERSON = 'end-add-person'
 VQA = 'visual-question-answering'
 START_FACE = 'start-face-recognition'
 REGISTER_FACE = 'register-face-recognition'
 IMAGE_TO_TEXT = 'image-to-text'
-OCR = 'OCR'
+OCR_MSG = 'ocr'
 FACE_RECOGNITION = 'face-recognition'
 REMOVE_PERSON = 'remove-person'
 ADD_PERSON = 'add-person'
@@ -40,6 +53,7 @@ class ClientAPI:
         self.last_person = None
         self.configParser = configparser.RawConfigParser()
         self.configParser.read(configFilePath)
+        self.last_msg = None
 
     def handle_capture_button(self):
         global Running
@@ -53,11 +67,13 @@ class ClientAPI:
                     if self.last_person is None:
                         print('please say add person')
                     else:
-
+                        print('taking photo')
                         self.data_callback(data_id=ADD_PERSON)
                         # images count per user
                         images += 1
                         if images >= 10:
+                            self.data_callback(data_id=END_ADD_PERSON)
+
                             self.last_person = None
                             images = 0
                     time.sleep(1)
@@ -85,7 +101,7 @@ class ClientAPI:
                 self.speaker_name = self.configParser.get('user-data', 'u_name')
                 self.data_callback(data_id=START_FACE)
 
-            self.tts.say('Welcome ' + self.speaker_name)
+            self.tts.say(f'Welcome {self.speaker_name}')
 
             capture_handler = threading.Thread(
                 target=self.handle_capture_button,
@@ -95,10 +111,11 @@ class ClientAPI:
             # start recogniser
             self.recognizer.start()
         finally:
+            self.tts.say('System Shutdown . Good bye')
             Running = False
             print('closing camera')
             self.cam.close()
-            ConnectionHelper.send_json(self.socket, {'type': 'close'})
+            ConnectionHelper.send_pickle(self.socket, CloseMessage())
             print('closing socket')
             self.socket.close()
 
@@ -121,6 +138,7 @@ class ClientAPI:
                 if data_id == 'set-last-person':
                     if speech != '':
                         self.last_person = speech
+                        self.tts.say(f'selected user is . {speech}')
                 else:
                     message = self._build_message(data_id, text_from_speech=speech)
                 # os.remove(fname)
@@ -131,7 +149,6 @@ class ClientAPI:
             message = self._build_message(data_id)
 
         if message is not None:
-            print(message)
             self.communicate_with_server(message)
 
     def get_speaker(self, fname):
@@ -178,29 +195,29 @@ class ClientAPI:
         self.socket.close()
 
     def communicate_with_server(self, message):
-        if message['type'] == OCR:
+        if self.last_msg == OCR_MSG:
             response = OCR.get_text()
         else:
-            ConnectionHelper.send_json(self.socket, message)
+            ConnectionHelper.send_pickle(self.socket, message)
             response = ConnectionHelper.receive_json(self.socket)
-        if message['type'] == REGISTER_FACE:
+
+        if self.last_msg == REGISTER_FACE:
             self.id = response['result']
             # register face response
             print('registering')
         print(response)
-        self.say_message(response['result'], message['type'])
+        self.say_message(response['result'])
 
     def write_config(self, field, data):
         self.configParser.set('user-data', field, data)
         with open('config.ini', 'w') as f:
             self.configParser.write(f)
 
-    def say_message(self, response, m_type):
+    def say_message(self, response):
         phrase = 'we recognise . '
         print(response)
-        print(m_type)
         if response.strip() != '':
-            if m_type == FACE_RECOGNITION:
+            if self.last_msg == FACE_RECOGNITION:
                 persons = response.split(',')
                 unk_count = sum([x.split(' ').count(UNKNOWN) for i, x in enumerate(persons)])
 
@@ -209,7 +226,8 @@ class ClientAPI:
                 for idx, person in enumerate(persons):
                     person = person.split(' ')
                     persons[idx] = person[0].replace('_', ' ').title()
-                    persons[idx] += ' With probability of {} Percent . '.format(person[1])
+                    persons[idx] += ' . '
+                    # persons[idx] += ' With probability of {} Percent . '.format(person[1])
 
                 if unk_count > 0:
                     persons.append(str(unk_count) + ' Unknown persons . ')
@@ -219,118 +237,79 @@ class ClientAPI:
                     phrase += persons[i]
                     phrase += ' And ' if i == persons_count - 2 and persons_count > 1 else ''
 
-            elif m_type == IMAGE_TO_TEXT or m_type == OCR:
+            elif self.last_msg == IMAGE_TO_TEXT or self.last_msg == OCR_MSG:
                 phrase += response
-            elif m_type == VQA:
+            elif self.last_msg == VQA:
                 answers = response.split(',')
                 answers_count = len(answers)
                 for i in range(answers_count):
                     phrase += answers[i].capitalize() + (
                         ' . Or ' if i == answers_count - 2 and answers_count > 1 else ' . ')
+            else:
+                phrase = ''
             self.tts.say(phrase)
 
+    def take_image(self, face_count=0):
+        self.tts.say('Taking Photo')
+        img = self.cam.take_image(face_count=face_count)
+        if img == -1:
+            print('Sorry,Please Take a new Image.')
+            self.tts.say('Sorry  Please Take a new Image.')
+            return None
+        return img
+
     def _build_message(self, type, text_from_speech=None):
-
-        json_data = {
-            "type": type,
-        }
-        image_file = None
+        self.last_msg = type
         if type == ADD_PERSON:
-            image_file = self.cam.take_image(face_count=1)
-            if image_file == -1:
-                print('Sorry,Please Take a new Image.')
-                self.tts.say('Sorry  Please Take a new Image.')
-                return None
-            json_data["name"] = self.last_person
+            image = self.take_image(face_count=1)
+            return AddPersonMessage(image) if image is not None else None
 
-        elif type == REGISTER_FACE or type == START_FACE:
-            json_data["name"] = self.id
+        if type == OCR_MSG:
+            return OcrMessage()
+
+        elif type == END_ADD_PERSON:
+            return EndAddPersonMessage(self.last_person)
+
+        elif type == REGISTER_FACE:
+            return RegisterFaceRecognitionMessage(self.id)
+
+        elif type == START_FACE:
+            return StartFaceRecognitionMessage(self.id)
 
         elif type == REMOVE_PERSON:
-            json_data["name"] = text_from_speech
+            return RemovePersonMessage(text_from_speech)
 
-        elif type == IMAGE_TO_TEXT or \
-                type == VQA or \
-                type == FACE_RECOGNITION:
-            image_file = self.cam.take_image()
+        elif type == IMAGE_TO_TEXT:
+            image = self.take_image()
+            return ImageToTextMessage(image) if image is not None else None
 
-        json_data["image"] = image_file
+        elif type == VQA:
+            image = self.take_image()
+            return VqaMessage(image, text_from_speech) if image is not None else None
 
-        if text_from_speech is not None:
-            json_data["question"] = text_from_speech
+        elif type == FACE_RECOGNITION:
+            image = self.take_image()
+            return FaceRecognitionMessage(image) if image is not None else None
 
-        return json_data
-
-
-appos = {
-    "aren't": "are not",
-    "can't": "cannot",
-    "couldn't": "could not",
-    "didn't": "did not",
-    "doesn't": "does not",
-    "don't": "do not",
-    "hadn't": "had not",
-    "hasn't": "has not",
-    "haven't": "have not",
-    "he'd": "he would",
-    "he'll": "he will",
-    "he's": "he is",
-    "i'd": "I would",
-    "i'll": "I will",
-    "i'm": "I am",
-    "isn't": "is not",
-    "it's": "it is",
-    "it'll": "it will",
-    "i've": "I have",
-    "let's": "let us",
-    "mightn't": "might not",
-    "mustn't": "must not",
-    "shan't": "shall not",
-    "she'd": "she would",
-    "she'll": "she will",
-    "she's": "she is",
-    "shouldn't": "should not",
-    "that's": "that is",
-    "there's": "there is",
-    "they'd": "they would",
-    "they'll": "they will",
-    "they're": "they are",
-    "they've": "they have",
-    "we'd": "we would",
-    "we're": "we are",
-    "weren't": "were not",
-    "we've": "we have",
-    "what'll": "what will",
-    "what're": "what are",
-    "what's": "what is",
-    "what've": "what have",
-    "where's": "where is",
-    "who'd": "who would",
-    "who'll": "who will",
-    "who're": "who are",
-    "who's": "who is",
-    "who've": "who have",
-    "won't": "will not",
-    "wouldn't": "would not",
-    "you'd": "you would",
-    "you'll": "you will",
-    "you're": "you are",
-    "you've": "you have",
-    "'re": " are",
-    "wasn't": "was not",
-    "we'll": " will"
-}
+        return None
 
 
-def to_uniform(word):
-    words = word.split()
-    reformed = [appos[word] if word in appos else word for word in words]
-    return " ".join(reformed)
-
-
-if __name__ == '__main__':
-    api = ClientAPI(host='192.168.1.4')
+def main(args):
+    api = ClientAPI(host=args.ip, port=args.port)
     try:
         api.start()
     finally:
         api.close()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host', type=str,
+                        default='192.168.1.4')
+    parser.add_argument('--port', type=int,
+                        default=8888)
+    parser.add_argument('--config', type=str,
+                        default='config.ini')
+
+    arguments = parser.parse_args()
+    main(arguments)
