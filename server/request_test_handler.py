@@ -3,6 +3,7 @@ from multipledispatch import dispatch
 
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
+from misc.image_helper import ImageHelper
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
@@ -75,7 +76,7 @@ def start(self, client_socket):
             if isinstance(message, CloseMessage):
                 break
             if isinstance(message, ImageMessage):
-                message.image = ConnectionHelper.to_image(message.image)
+                message.image = ImageHelper.to_image(message.image)
             result = self.handle_message(message)
             ConnectionHelper.send_json(client_socket, result)
             print("result:")

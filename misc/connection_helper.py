@@ -1,9 +1,5 @@
-import base64
 import json
 import pickle
-
-import cv2
-import numpy as np
 
 
 class ConnectionHelper:
@@ -67,7 +63,3 @@ class ConnectionHelper:
             next_offset += recv_size
         view = view.tobytes()
         return view
-
-    @staticmethod
-    def to_image(img_data):
-        return cv2.imdecode(np.fromstring(base64.decodebytes(img_data.encode()), np.uint8), cv2.IMREAD_COLOR)
