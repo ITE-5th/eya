@@ -3,7 +3,8 @@ models
 trained_models
 data
 saved_images
-mtcnn-model
+!face/extractors/models
+!face/trained_models/base_model.model
 vqa/modified_model/caffe
 vqa/modified_model/experiments
 vqa/modified_model/faster_lib

@@ -90,6 +90,7 @@ class RequestHandler:
             result["result"] = self.face_recognition.predict(message.image)
         else:
             result["result"] = "error"
+        print(result)
         return result
 
     @dispatch(VqaMessage)

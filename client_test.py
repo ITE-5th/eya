@@ -27,9 +27,9 @@ class Client:
             if i % 3 == 0:
                 message = self._build_message("image-to-text")
             elif i % 3 == 1:
-                message = self._build_message("visual-question-answering", "what is the color of the door?")
-            else:
                 message = self._build_message("face-recognition")
+            else:
+                message = self._build_message("visual-question-answering", "what is the color of the door?")
             self.communicate_with_server(message)
             i += 1
 
@@ -59,6 +59,6 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(port=8888)
+    client = Client(port=9000)
     # client = Client(host="192.168.43.71", port=8888)
     client.start()

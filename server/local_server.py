@@ -12,7 +12,7 @@ Vocabulary()
 
 
 class LocalServer:
-    def __init__(self, host=socket.gethostname(), port=9000):
+    def __init__(self, host=socket.gethostname(), port=8888):
         self.host = host
         self.port = port
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,7 +43,7 @@ class LocalServer:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = LocalServer(port=8888)
+    server = LocalServer(port=9000)
     # server = LocalServer(host="192.168.43.71", port=8888)
 
     try:

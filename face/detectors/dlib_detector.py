@@ -7,7 +7,7 @@ from file_path_manager import FilePathManager
 
 class DLibDetector(BaseDetector):
 
-    def __init__(self, scale=1, use_cnn=False) -> None:
+    def __init__(self, scale=1, use_cnn=False):
         super().__init__()
         self.scale = scale
         self.use_cnn = use_cnn

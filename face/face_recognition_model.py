@@ -1,6 +1,7 @@
 import os
 from shutil import rmtree, copy2
 
+import cv2
 import joblib
 
 from face.predictor.evm_predictor import EvmPredictor
@@ -23,7 +24,7 @@ class FaceRecognitionModel:
             raise FileNotFoundError("The model was not found")
 
     @staticmethod
-    def register(name, remove_dir=True):
+    def register(name, remove_dir=False):
         path = FilePathManager.resolve("face/trained_models")
         base_model_path = f"{path}/base_model.model"
         person_path = f"{path}/{name}"
@@ -49,3 +50,9 @@ class FaceRecognitionModel:
         temp = self.predictor.predict_from_image(face)
         temp = [f"{x[0]} {x[1]}" for x in temp]
         return ",".join(temp)
+
+
+if __name__ == '__main__':
+    model = FaceRecognitionModel("zaher")
+    face = cv2.imread(FilePathManager.resolve("face/test_faces/20.jpg"))
+    print(model.predict(face))

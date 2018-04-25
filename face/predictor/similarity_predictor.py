@@ -23,7 +23,6 @@ class SimilarityPredictor:
             extractor
         ])
         self.model_path = model_path
-        # for vgg face, 0.7 seems to be the best
         self.threshold = threshold
         if os.path.exists(model_path):
             self.reload()
@@ -51,7 +50,8 @@ class SimilarityPredictor:
         return max_per if max_sim >= self.threshold else EVM.UNKNOWN, max_sim
 
     def predict_from_image(self, image):
-        faces = self.pipeline(image)[0]
+        faces = self.pipeline(image)
+        faces = faces[0]
         return [self.detect(faces[i]) for i in range(faces.shape[0])]
 
     def predict_from_path(self, path):
