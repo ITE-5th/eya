@@ -295,7 +295,7 @@ class ClientAPI:
 
 
 def main(args):
-    api = ClientAPI(host=args.ip, port=args.port)
+    api = ClientAPI(host=args.host, port=args.port)
     try:
         api.start()
     finally:
