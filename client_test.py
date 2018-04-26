@@ -24,12 +24,12 @@ class Client:
         self.communicate_with_server(StartFaceRecognitionMessage(name))
         i = 0
         while True:
-            #if i % 3 == 0:
-            message = self._build_message("face-recognition")
-            # elif i % 3 == 1:
-            #     message = self._build_message("image-to-text")
-            # else:
-            #     message = self._build_message("visual-question-answering", "what is the color of the door?")
+            if i % 3 == 0:
+                message = self._build_message("face-recognition")
+            elif i % 3 == 1:
+                message = self._build_message("image-to-text")
+            else:
+                message = self._build_message("visual-question-answering", "what is the color of the door?")
             self.communicate_with_server(message)
             i += 1
 
@@ -59,6 +59,6 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(port=7777)
+    client = Client(port=9999)
     # client = Client(host="192.168.43.71", port=8888)
     client.start()

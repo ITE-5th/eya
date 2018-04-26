@@ -1,12 +1,12 @@
 import os
 import socket
 
-from encoder_decoder.build_vocab import Vocabulary
-from image_to_text.image_to_text_model import ImageToTextModel
 from server.request_handler import RequestHandler
-from vqa.vqa_model import VqaModel
-
+from encoder_decoder.build_vocab import Vocabulary
+from image_to_text_model import ImageToTextModel
 # just to use it
+from vqa_model import VqaModel
+
 Vocabulary()
 
 
@@ -17,8 +17,9 @@ class LocalServer:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((host, port))
         self.socket.listen(5)
-        self.image_to_text = ImageToTextModel()
         self.vqa = VqaModel()
+        self.image_to_text = ImageToTextModel()
+        # self.image_to_text = None
         self.client_socket, self.address = None, None
 
     def handle_client_connection(self, client_socket):
@@ -43,7 +44,7 @@ class LocalServer:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    server = LocalServer(port=7777)
+    server = LocalServer(port=9999)
     # server = LocalServer(host="192.168.43.71", port=8888)
 
     try:
