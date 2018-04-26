@@ -1,5 +1,6 @@
 import argparse
 import configparser
+import os
 import socket
 import threading
 import time
@@ -13,6 +14,7 @@ from misc.connection_helper import ConnectionHelper
 from misc.text_normalizer import to_uniform
 from rp_client.TTS import TTS
 from rp_client.camera import Camera
+from rp_client.keypad import Keypad
 from rp_client.ocr import OCR
 from rp_client.recognizer import Recognizer
 from server.message.add_person_message import AddPersonMessage
@@ -30,14 +32,17 @@ Running = True
 # MESSAGE TYPES
 END_ADD_PERSON = 'end-add-person'
 VQA = 'visual-question-answering'
-START_FACE = 'start-face-recognition'
-REGISTER_FACE = 'register-face-recognition'
 IMAGE_TO_TEXT = 'image-to-text'
 OCR_MSG = 'ocr'
 FACE_RECOGNITION = 'face-recognition'
 REMOVE_PERSON = 'remove-person'
 ADD_PERSON = 'add-person'
 UNKNOWN = 'Unknown'
+SET_LAST_PERSON = 'set-last-person'
+
+# user identify
+START_FACE = 'start-face-recognition'
+REGISTER_FACE = 'register-face-recognition'
 
 
 class ClientAPI:
@@ -54,38 +59,41 @@ class ClientAPI:
         self.configParser = configparser.RawConfigParser()
         self.configParser.read(configFilePath)
         self.last_msg = None
+        self.keypad_client = Keypad()
+        self._images_counter = 0
 
     def handle_capture_button(self):
         global Running
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         try:
-            images = 1
             while Running:
                 button_state = GPIO.input(23)
                 if not button_state:
-                    if self.last_person is None:
-                        print('please say add person')
-                    else:
-                        self.tts.say(f'image number is . {images} . for user . {self.last_person} . ')
-                        success = self.data_callback(data_id=ADD_PERSON)
-                        if success:
-                            self.tts.say(f'image successfully added . ')
-
-                            # images count per user
-                            if images >= 10:
-                                self.data_callback(data_id=END_ADD_PERSON)
-                                self.last_person = None
-                                images = 0
-
-                            images += 1
-
+                    self.add_person()
                     time.sleep(1)
                 time.sleep(0.05)
         except Exception as e:
             print('\033[93m' + 'capture thread stopped' + '\033[0m')
             print(e)
             GPIO.cleanup()
+
+    def add_person(self):
+        if self.last_person is None:
+            success = self.data_callback(data_id=SET_LAST_PERSON)
+        else:
+            self.tts.say(f'image number is . {self._images_counter} . for user . {self.last_person} . ')
+            success = self.data_callback(data_id=ADD_PERSON)
+            if success:
+                self.tts.say(f'image successfully added . ')
+
+                # images count per user
+                if self._images_counter >= 10:
+                    self.data_callback(data_id=END_ADD_PERSON)
+                    self.last_person = None
+                    self._images_counter = 0
+
+                self._images_counter += 1
 
     def start(self):
         global Running
@@ -110,6 +118,7 @@ class ClientAPI:
             capture_handler = threading.Thread(
                 target=self.handle_capture_button,
             )
+            self.keypad_client.start(self.keypad_callback)
 
             capture_handler.start()
             # start recogniser
@@ -117,7 +126,9 @@ class ClientAPI:
         finally:
             self.tts.say('System Shutdown . Good bye')
             Running = False
+            self.recognizer.set_interrupted(True)
             print('closing camera')
+            self.keypad_client.cleanup()
             self.cam.close()
             ConnectionHelper.send_pickle(self.socket, CloseMessage())
             print('closing socket')
@@ -133,22 +144,18 @@ class ClientAPI:
         :param data_id: callback message type
         """
         message = None
-        if data_id in [VQA, 'set-last-person', REMOVE_PERSON]:
+        if data_id in [VQA, SET_LAST_PERSON, REMOVE_PERSON]:
             # verify speaker
-            threshold = 0.5
-            if self.get_speaker(fname) > threshold:
-                print("converting audio to text")
-                speech = self.speech_to_text(fname)
-                if data_id == 'set-last-person':
-                    if speech != '':
-                        self.last_person = speech
-                        self.tts.say(f'selected user is . {speech}')
-                else:
-                    message = self._build_message(data_id, text_from_speech=speech)
-                # os.remove(fname)
+            print("converting audio to text")
+            speech = self.speech_to_text(fname)
+            if data_id == SET_LAST_PERSON:
+                if speech != '':
+                    self.last_person = speech
+                    self.tts.say(f'selected user is . {speech}')
+                    return True
             else:
-                print('speaker is not verified')
-
+                message = self._build_message(data_id, text_from_speech=speech)
+            # os.remove(fname)
         else:
             message = self._build_message(data_id)
 
@@ -165,36 +172,46 @@ class ClientAPI:
 
     def speech_to_text(self, fname=None, mic=False):
         r = sr.Recognizer()
-
+        if fname is None:
+            fname = './temp/mic_' + time.strftime("%Y%m%d-%H%M%S") + '.wav'
+            mic = True
         if mic:
+            self.recognizer.pause()
             print('Recording')
             with sr.Microphone() as source:
                 audio = r.listen(source)
                 # write audio to a WAV file
                 with open(fname, "wb") as f:
                     f.write(audio.get_wav_data())
+            self.recognizer.resume()
+
         else:
             with sr.AudioFile(fname) as source:
                 audio = r.record(source)  # read the entire audio file
+        threshold = 0.5
 
-        try:
-            # print("Sphinx thinks you said " + r.recognize_sphinx(audio))
-            print("")
-        except sr.UnknownValueError:
-            print("Sphinx could not understand audio")
+        if self.get_speaker(fname) > threshold:
+            try:
+                # print("Sphinx thinks you said " + r.recognize_sphinx(audio))
+                print("")
+            except sr.UnknownValueError:
+                print("Sphinx could not understand audio")
 
-        except sr.RequestError as e:
-            print("Sphinx error; {0}".format(e))
-        # recognize speech using Google Speech Recognition
-        googleSTT = ''
-        try:
-            googleSTT = r.recognize_google(audio)
-            print(googleSTT)
-        except sr.UnknownValueError:
-            print("Google Speech Recognition could not understand audio")
-        except sr.RequestError as e:
-            print("Could not request results from Google Speech Recognition service; {0}".format(e))
-        return to_uniform(googleSTT)
+            except sr.RequestError as e:
+                print("Sphinx error; {0}".format(e))
+            # recognize speech using Google Speech Recognition
+            googleSTT = ''
+            try:
+                googleSTT = r.recognize_google(audio)
+                print(googleSTT)
+            except sr.UnknownValueError:
+                print("Google Speech Recognition could not understand audio")
+            except sr.RequestError as e:
+                print("Could not request results from Google Speech Recognition service; {0}".format(e))
+            return to_uniform(googleSTT)
+        else:
+            print('speaker is not verified')
+            return ''
 
     def close(self):
         self.socket.close()
@@ -299,6 +316,31 @@ class ClientAPI:
             return FaceRecognitionMessage(image) if image is not None else None
 
         return None
+
+    def keypad_callback(self, key):
+        global Running
+        print(key)
+        callbacks = [
+            lambda: self.data_callback(data_id=FACE_RECOGNITION),
+            lambda: self.data_callback(data_id=VQA),
+            lambda: self.data_callback(data_id=IMAGE_TO_TEXT),
+            lambda: self.data_callback(data_id=OCR_MSG),
+            lambda: self.add_person(),
+            lambda: self.data_callback(data_id=REMOVE_PERSON),
+        ]
+        if key in range(1, 6):
+            print(callbacks[key - 1])
+            callbacks[key - 1]()
+        elif key == 'A':
+            Running = False
+            time.sleep(5)
+            os.execv('/home/pi/myFolder/RestartMySelf.py', [''])
+        elif key == 'B':
+            Running = False
+            os.system('sudo reboot')
+        elif key == 'C':
+            Running = False
+            os.system('sudo shutdown now')
 
 
 def main(args):
