@@ -1,12 +1,13 @@
 import os
 import socket
+import threading
 
 from server.request_handler import RequestHandler
 from encoder_decoder.build_vocab import Vocabulary
 from image_to_text_model import ImageToTextModel
-# just to use it
 from vqa_model import VqaModel
 
+# just to use it
 Vocabulary()
 
 
@@ -19,7 +20,6 @@ class LocalServer:
         self.socket.listen(5)
         self.vqa = VqaModel()
         self.image_to_text = ImageToTextModel()
-        # self.image_to_text = None
         self.client_socket, self.address = None, None
 
     def handle_client_connection(self, client_socket):
@@ -31,12 +31,11 @@ class LocalServer:
         while True:
             client_socket, address = self.socket.accept()
             print('Accepted connection from {}:{}'.format(address[0], address[1]))
-            # client_handler = threading.Thread(
-            #     target=self.handle_client_connection,
-            #     args=(client_socket,)
-            # )
-            # client_handler.start()
-            self.handle_client_connection(client_socket)
+            client_handler = threading.Thread(
+                target=self.handle_client_connection,
+                args=(client_socket,)
+            )
+            client_handler.start()
 
     def close(self):
         self.socket.close()
