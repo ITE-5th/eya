@@ -261,3 +261,19 @@ class HotwordDetector(object):
         self.stream_in.close()
         self.audio.terminate()
         self._running = False
+
+
+# https://www.raspberrypi.org/forums/viewtopic.php?t=13088
+# sudo nano ~/.asoundrc
+
+# pcm.!default {
+#   type asym
+#    playback.pcm {
+#      type plug
+#      slave.pcm "hw:0,0"
+#    }
+#    capture.pcm {
+#      type plug
+#      slave.pcm "hw:1,0"
+#    }
+# }

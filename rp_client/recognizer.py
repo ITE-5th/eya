@@ -1,9 +1,11 @@
 import signal
+import time
 
 from rp_client import snowboydecoder
 
 interrupted = False
-Running = True
+Recognizer_Running = True
+Pause = False
 
 
 class Recognizer:
@@ -37,7 +39,9 @@ class Recognizer:
         self.callback_function = callback_function
 
     def start(self):
-        global Running
+        global Recognizer_Running, Pause
+        Recognizer_Running = True
+        self.set_interrupted(False)
         callbacks = [lambda: [snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)],
                      lambda: [
                          snowboydecoder.play_audio_file(snowboydecoder.DETECT_DONG),
@@ -85,41 +89,55 @@ class Recognizer:
         ]
 
         # main loop
-        while Running:
-            print('\033[93m' + 'Listening... ' + '\033[0m')
-            #
-            # self.start_detector.start(detected_callback=[
-            #     lambda: [self.start_detected_callback(), snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)]],
-            #     interrupt_check=self.interrupt_start_callback,
-            #     sleep_time=0.01)
-            # self.start_detector.terminate()
-            self.detector.start(detected_callback=callbacks,
-                                audio_recorder_callback=acallbacks,
-                                interrupt_check=self.interrupt_callback,
-                                sleep_time=0.01)
-            # self.detector.terminate()
+
+        while Recognizer_Running:
+            if Pause:
+                time.sleep(0.3)
+            else:
+
+                print('\033[93m' + 'Listening... ' + '\033[0m')
+                #
+                # self.start_detector.start(detected_callback=[
+                #     lambda: [self.start_detected_callback(), snowboydecoder.play_audio_file(snowboydecoder.DETECT_DING)]],
+                #     interrupt_check=self.interrupt_start_callback,
+                #     sleep_time=0.01)
+                # self.start_detector.terminate()
+                self.detector.start(detected_callback=callbacks,
+                                    audio_recorder_callback=acallbacks,
+                                    interrupt_check=self.interrupt_callback,
+                                    sleep_time=0.01)
+                # self.detector.terminate()
 
     def start_detected_callback(self):
         global interrupted
         self.set_interrupted(value=True)
 
     def signal_handler(self, signal, frame):
-        global Running
-        print(Running)
-        Running = False
+        global Recognizer_Running
+        print(Recognizer_Running)
+        Recognizer_Running = False
+
+    def pause(self):
+        global Pause
+        Pause = True
+        self.detector.terminate()
+
+    def resume(self):
+        global Pause
+        Pause = False
 
     def set_interrupted(self, value=None):
         global interrupted
         interrupted = not interrupted if value is None else value
 
     def interrupt_callback(self):
-        global interrupted, Running
-        # return not Running or not interrupted
-        return not Running or interrupted
+        global interrupted, Recognizer_Running
+        # return not Recognizer_Running or not interrupted
+        return not Recognizer_Running or interrupted
 
     def interrupt_start_callback(self):
-        global interrupted, Running
-        return not Running or interrupted
+        global interrupted, Recognizer_Running
+        return not Recognizer_Running or interrupted
 
 
 if __name__ == '__main__':
