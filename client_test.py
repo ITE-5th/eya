@@ -24,12 +24,12 @@ class Client:
         self.communicate_with_server(StartFaceRecognitionMessage(name))
         i = 0
         while True:
-            if i % 3 == 0:
-                message = self._build_message("image-to-text")
-            elif i % 3 == 1:
-                message = self._build_message("face-recognition")
-            else:
-                message = self._build_message("visual-question-answering", "what is the color of the door?")
+            #if i % 3 == 0:
+            message = self._build_message("face-recognition")
+            # elif i % 3 == 1:
+            #     message = self._build_message("image-to-text")
+            # else:
+            #     message = self._build_message("visual-question-answering", "what is the color of the door?")
             self.communicate_with_server(message)
             i += 1
 
@@ -44,7 +44,7 @@ class Client:
     @staticmethod
     def _build_message(type, question=None):
         if type == "face-recognition":
-            file_path = FilePathManager.resolve("face/test_faces/brad-pitt-jennifer-aniston.jpg")
+            file_path = FilePathManager.resolve("face/test_faces/20.jpg")
         else:
             file_path = FilePathManager.resolve("vqa/test_images/test.jpg")
         with open(file_path, "rb") as image_file:
@@ -59,6 +59,6 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(port=9000)
+    client = Client(port=7777)
     # client = Client(host="192.168.43.71", port=8888)
     client.start()
