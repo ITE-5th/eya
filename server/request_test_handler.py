@@ -1,6 +1,9 @@
+import sys
+
 import cv2
 from multipledispatch import dispatch
 
+import server
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
 from misc.image_helper import ImageHelper
@@ -14,6 +17,8 @@ from server.message.register_face_recognition_message import RegisterFaceRecogni
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
+
+sys.modules['skill-socket_ITE-5th'] = server
 
 
 class RequestHandler:
