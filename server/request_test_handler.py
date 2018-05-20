@@ -6,9 +6,11 @@ from multipledispatch import dispatch
 import server
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
+from misc.converter import Converter
 from misc.image_helper import ImageHelper
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
+# from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
@@ -77,6 +79,8 @@ class RequestHandler:
         try:
             while True:
                 message = ConnectionHelper.receive_pickle(client_socket)
+                message = Converter.to_object(message, from_json=False)
+
                 if isinstance(message, CloseMessage):
                     break
                 if isinstance(message, ImageMessage):
