@@ -83,8 +83,8 @@ class RequestHandler:
 
                 if isinstance(message, CloseMessage):
                     break
-                if isinstance(message, ImageMessage):
-                    message.image = Converter.to_image(message.image)
+                # if isinstance(message, ImageMessage):
+                #     message.image = Converter.to_image(message.image)
                 result = self.handle_message(message)
                 ConnectionHelper.send_json(client_socket, result)
                 print(f"result: {result}")
