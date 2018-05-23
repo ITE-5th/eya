@@ -7,7 +7,6 @@ import server
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
 from misc.converter import Converter
-from misc.image_helper import ImageHelper
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 # from server.message.close_message import CloseMessage
@@ -20,6 +19,7 @@ from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
 
+sys.modules['skill-socket_ITE-5th.code'] = server
 sys.modules['skill-socket_ITE-5th'] = server
 
 
@@ -83,12 +83,11 @@ class RequestHandler:
 
                 if isinstance(message, CloseMessage):
                     break
-                if isinstance(message, ImageMessage):
-                    message.image = ImageHelper.to_image(message.image)
+                # if isinstance(message, ImageMessage):
+                #     message.image = Converter.to_image(message.image)
                 result = self.handle_message(message)
                 ConnectionHelper.send_json(client_socket, result)
-                print("result:")
-                print(result)
+                print(f"result: {result}")
         finally:
             print("socket closed")
             client_socket.close()

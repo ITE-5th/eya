@@ -1,6 +1,9 @@
+import base64
+import numpy as np
+import cv2
+
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
-# from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
@@ -23,3 +26,7 @@ class Converter(object):
             return obj
 
         raise AttributeError("Not Supported.")
+
+    @staticmethod
+    def to_image(img_data):
+        return cv2.imdecode(np.fromstring(base64.decodebytes(img_data.encode()), np.uint8), cv2.IMREAD_COLOR)
