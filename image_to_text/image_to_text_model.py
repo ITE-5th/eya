@@ -1,3 +1,5 @@
+import re
+
 from image_to_text.predictor.convcap_predictor import ConvcapPredictor
 from image_to_text.predictor.encoder_decoder_predictor import EncoderDecoderPredictor
 from image_to_text.predictor.predictor import Predictor
@@ -12,5 +14,11 @@ class ImageToTextModel:
         elif model_type == "convcap":
             self.predictor = ConvcapPredictor()
 
+    @staticmethod
+    def process_result(caption):
+        caption = caption.replace("<unk>", " ")
+        return re.sub(r'(.)\1+', r'\1', caption)
+
     def predict(self, image):
-        return self.predictor.predict(image)
+        result = self.process_result(self.predictor.predict(image))
+        return result

@@ -26,8 +26,8 @@ class EncoderDecoderPredictor(Predictor):
                              512,
                              len(self.vocab),
                              1)
-        encoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/encoder-5-3000.pkl")))
-        decoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/decoder-5-3000.pkl")))
+        encoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/encoder.pkl")))
+        decoder.load_state_dict(torch.load(FilePathManager.resolve("image_to_text/models/decoder.pkl")))
         encoder = encoder
         decoder = decoder
         for param in encoder.parameters():
