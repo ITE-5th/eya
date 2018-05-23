@@ -49,7 +49,7 @@ class LocalServer:
 
     def start(self):
         print(
-            f"server started. vqa port = {self.vqa_port}, itt port = {self.image_to_text_port}, face port = {self.face_recognition_port}")
+            f"vqa port = {self.vqa_port}, itt port = {self.image_to_text_port}, face port = {self.face_recognition_port}")
         vqa_thread = threading.Thread(target=self.handle_socket, args=(self.vqa_socket,))
         image_to_text_thread = threading.Thread(target=self.handle_socket, args=(self.image_to_text_socket,))
         face_recognition_thread = threading.Thread(target=self.handle_socket, args=(self.face_recognition_socket,))
@@ -67,7 +67,7 @@ class LocalServer:
 
 
 if __name__ == '__main__':
-    os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
+    os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'| xargs kill')
     first_port = 9500
     server = LocalServer(ports=[first_port, first_port + 1, first_port + 2])
     # server = LocalServer(host="192.168.43.71", ports=[first_port, first_port + 1, first_port + 2])
