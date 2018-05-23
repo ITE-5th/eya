@@ -12,7 +12,6 @@ from server.message.close_message import CloseMessage
 # from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
-from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
 from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage

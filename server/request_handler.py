@@ -1,10 +1,13 @@
+import sys
+
 import cv2
 from multipledispatch import dispatch
 
-from face.face_recognition_model import FaceRecognitionModel
+import server
+from face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.connection_helper import ConnectionHelper
-from misc.image_helper import ImageHelper
+from misc.converter import Converter
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
@@ -15,6 +18,9 @@ from server.message.register_face_recognition_message import RegisterFaceRecogni
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
+
+sys.modules['skill-socket_ITE-5th.code'] = server
+sys.modules['skill-socket_ITE-5th'] = server
 
 
 class RequestHandler:
@@ -111,14 +117,14 @@ class RequestHandler:
         try:
             while True:
                 message = ConnectionHelper.receive_pickle(client_socket)
+                message = Converter.to_object(message, from_json=False)
                 if isinstance(message, CloseMessage):
                     break
                 if isinstance(message, ImageMessage):
-                    message.image = ImageHelper.to_image(message.image)
+                    message.image = Converter.to_image(message.image)
                 result = self.handle_message(message)
                 ConnectionHelper.send_json(client_socket, result)
-                print("result:")
-                print(result)
+                print(f"result: {result}")
         finally:
             print("socket closed")
             client_socket.close()
