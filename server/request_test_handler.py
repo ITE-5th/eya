@@ -78,7 +78,7 @@ class RequestHandler:
         try:
             while True:
                 message = ConnectionHelper.receive_pickle(client_socket)
-                message = Converter.to_object(message, from_json=False)
+                message = Converter.to_object(message, json=False)
 
                 if isinstance(message, CloseMessage):
                     break
