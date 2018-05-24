@@ -59,6 +59,6 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(port=9999)
+    client = Client(port=9500)
     # client = Client(host="192.168.43.71", port=8888)
     client.start()
