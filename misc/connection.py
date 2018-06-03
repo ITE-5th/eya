@@ -10,14 +10,16 @@ class Connection:
         return result == 0
 
     @staticmethod
-    def find_available_port():
+    def find_available_port(exp=[0]):
         max_port_number = 65535
         for i in range(max_port_number):
-            if Connection.is_available_port(i):
+            if Connection.is_available_port(i) and i not in exp:
                 return i
         return -1
 
     @staticmethod
     def find_available_ports():
-        port1, port2, port3 = Connection.find_available_port(), Connection.find_available_port(), Connection.find_available_port()
+        port1=Connection.find_available_port()
+        port2=Connection.find_available_port([port1])
+        port3=Connection.find_available_port([port1, port2])
         return [port1, port2, port3]
