@@ -2,10 +2,10 @@ import os
 import socket
 import threading
 
+from server.request_handler import RequestHandler
 from encoder_decoder.build_vocab import Vocabulary
 from image_to_text_model import ImageToTextModel
 from misc.connection_helper import ConnectionHelper
-from server.request_handler import RequestHandler
 from vqa_model import VqaModel
 
 # just to use it
