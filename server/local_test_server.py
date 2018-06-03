@@ -37,7 +37,7 @@ class LocalServer:
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
     # server = LocalServer(port=8888)
-    server = LocalServer(host="192.168.1.4", port=8888)
+    server = LocalServer(host="192.168.1.103", port=8888)
     try:
         server.start()
     finally:

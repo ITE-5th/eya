@@ -20,12 +20,12 @@ class Converter(object):
     @staticmethod
     def to_object(message, json: bool = False):
         if json:
-            class_name = message['type']
+            class_name = message['_type']
         else:
             class_name = message.__class__.__name__
         class_ = globals()[class_name]
         obj = class_()
-        obj.__dict__ = message.__dict__
+        obj.__dict__ = message
         return obj
 
     @staticmethod

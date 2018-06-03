@@ -37,7 +37,7 @@ class ConnectionHelper:
 
     @staticmethod
     def receive_json(socket):
-        view = ConnectionHelper.receive(socket).decode()
+        view = ConnectionHelper.receive(socket)#.decode()
         try:
             deserialized = json.loads(view)
         except (TypeError, ValueError) as e:
