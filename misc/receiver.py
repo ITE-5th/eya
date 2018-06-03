@@ -1,11 +1,10 @@
 import json
-import pickle
+import _pickle as pickle
 
 
 class Receiver:
 
-    def __init__(self, socket, json: bool = True):
-        super().__init__()
+    def __init__(self, socket, json=True):
         self.socket = socket
 
         if json:
@@ -17,7 +16,7 @@ class Receiver:
         pass
 
     def receive_pickle(self):
-        view = self.receive()
+        view = self._receive()
         try:
             deserialized = pickle.loads(view)
         except (TypeError, ValueError) as e:
@@ -25,7 +24,7 @@ class Receiver:
         return deserialized
 
     def receive_json(self):
-        view = self.receive()
+        view = self._receive()
         view = view.decode()
         try:
             deserialized = json.loads(view)

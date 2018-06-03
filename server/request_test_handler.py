@@ -1,4 +1,5 @@
 import sys
+import winsound
 
 import cv2
 from multipledispatch import dispatch
@@ -13,6 +14,7 @@ from server.message.close_message import CloseMessage
 # from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
+from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
 from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
@@ -82,15 +84,18 @@ class RequestHandler:
         try:
             while True:
                 message = receiver.receive()
+
                 message = Converter.to_object(message, json=True)
 
                 if isinstance(message, CloseMessage):
                     break
-                # if isinstance(message, ImageMessage):
-                #     message.image = Converter.to_image(message.image)
+
+                if isinstance(message, ImageMessage):
+                    message.image = Converter.to_image(message.image)
                 result = self.handle_message(message)
                 sender.send(result)
                 print(f"result: {result}")
         finally:
+            winsound.Beep(1000, 500)
             print("socket closed")
             client_socket.close()

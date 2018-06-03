@@ -1,6 +1,7 @@
 import os
 import socket
 import threading
+import winsound
 
 from server.request_test_handler import RequestHandler
 
@@ -21,8 +22,10 @@ class LocalServer:
 
     def start(self):
         print('server started at {}:{}'.format(self.host, str(self.port)))
+        winsound.Beep(3000, 500)
         while True:
             client_socket, address = self.socket.accept()
+            winsound.Beep(2500, 500)
             print('Accepted connection from {}:{}'.format(address[0], address[1]))
             client_handler = threading.Thread(
                 target=self.handle_client_connection,
@@ -37,7 +40,7 @@ class LocalServer:
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
     # server = LocalServer(port=8888)
-    server = LocalServer(host="192.168.1.103", port=8888)
+    server = LocalServer(host="192.168.1.7", port=8888)
     try:
         server.start()
     finally:
