@@ -5,8 +5,9 @@ from multipledispatch import dispatch
 
 import server
 from file_path_manager import FilePathManager
-from misc.connection_helper import ConnectionHelper
 from misc.converter import Converter
+from misc.receiver import Receiver
+from misc.sender import Sender
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 # from server.message.close_message import CloseMessage
@@ -75,9 +76,12 @@ class RequestHandler:
         return result
 
     def start(self, client_socket):
+        receiver = Receiver(client_socket, json=True)
+        sender = Sender(client_socket, json=True)
+
         try:
             while True:
-                message = ConnectionHelper.receive_json(client_socket)
+                message = receiver.receive()
                 message = Converter.to_object(message, json=True)
 
                 if isinstance(message, CloseMessage):
@@ -85,7 +89,7 @@ class RequestHandler:
                 # if isinstance(message, ImageMessage):
                 #     message.image = Converter.to_image(message.image)
                 result = self.handle_message(message)
-                ConnectionHelper.send_json(client_socket, result)
+                sender.send(result)
                 print(f"result: {result}")
         finally:
             print("socket closed")

@@ -10,7 +10,8 @@ import speech_recognition as sr
 
 # from rp_client.speaker import Speaker
 # from rp_client.speaker import SpeakersModel
-from misc.connection_helper import ConnectionHelper
+from misc.receiver import Receiver
+from misc.sender import Sender
 from misc.text_normalizer import to_uniform
 from rp_client.TTS import TTS
 from rp_client.camera import Camera
@@ -61,6 +62,8 @@ class ClientAPI:
         self.last_msg = None
         self.keypad_client = Keypad()
         self._images_counter = 0
+        self.sender = Sender(self.socket, False)
+        self.receiver = Receiver(self.socket, False)
 
     def handle_capture_button(self):
         global Running
@@ -130,7 +133,8 @@ class ClientAPI:
             print('closing camera')
             self.keypad_client.cleanup()
             self.cam.close()
-            ConnectionHelper.send_pickle(self.socket, CloseMessage())
+            self.sender.send(CloseMessage())
+            # Connection.send_pickle(self.socket, CloseMessage())
             print('closing socket')
             self.socket.close()
 
@@ -220,8 +224,10 @@ class ClientAPI:
         if self.last_msg == OCR_MSG:
             response = OCR.get_text(message.image)
         else:
-            ConnectionHelper.send_pickle(self.socket, message)
-            response = ConnectionHelper.receive_json(self.socket)
+            self.sender.send(message)
+            # Connection.send_pickle(self.socket, message)
+            response = self.receiver.receive()
+            # response = Connection.receive_json(self.socket)
 
         if self.last_msg == REGISTER_FACE:
             self.id = response['result']

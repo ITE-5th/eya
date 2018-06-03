@@ -5,7 +5,7 @@ import threading
 from server.request_handler import RequestHandler
 from encoder_decoder.build_vocab import Vocabulary
 from image_to_text_model import ImageToTextModel
-from misc.connection_helper import ConnectionHelper
+from misc.connection import Connection
 from vqa_model import VqaModel
 
 # just to use it
@@ -16,7 +16,7 @@ class LocalServer:
     def __init__(self, host=socket.gethostname(), ports=None):
         self.host = host
         if ports is None:
-            ports = ConnectionHelper.find_available_ports()
+            ports = Connection.find_available_ports()
         self.vqa_port = ports[0]
         self.image_to_text_port = ports[1]
         self.face_recognition_port = ports[2]

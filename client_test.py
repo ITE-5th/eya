@@ -2,7 +2,7 @@ import base64
 import socket
 
 from file_path_manager import FilePathManager
-from misc.connection_helper import ConnectionHelper
+from misc.connection import Connection
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_to_text_message import ImageToTextMessage
 from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
@@ -37,8 +37,8 @@ class Client:
         self.socket.close()
 
     def communicate_with_server(self, message):
-        ConnectionHelper.send_pickle(self.socket, message)
-        response = ConnectionHelper.receive_json(self.socket)
+        Connection.send_pickle(self.socket, message)
+        response = Connection.receive_json(self.socket)
         print(response)
 
     @staticmethod

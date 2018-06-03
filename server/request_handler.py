@@ -6,8 +6,9 @@ from multipledispatch import dispatch
 import server
 from face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
-from misc.connection_helper import ConnectionHelper
 from misc.converter import Converter
+from misc.receiver import Receiver
+from misc.sender import Sender
 from server.message.add_person_message import AddPersonMessage
 from server.message.close_message import CloseMessage
 from server.message.end_add_person_message import EndAddPersonMessage
@@ -115,15 +116,17 @@ class RequestHandler:
 
     def start(self, client_socket):
         try:
+            sender = Sender(client_socket, True)
+            receiver = Receiver(client_socket, True)
             while True:
-                message = ConnectionHelper.receive_pickle(client_socket)
-                message = Converter.to_object(message, json=False)
+                message = receiver.receive()
+                message = Converter.to_object(message)
                 if isinstance(message, CloseMessage):
                     break
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
                 result = self.handle_message(message)
-                ConnectionHelper.send_json(client_socket, result)
+                sender.send(result)
                 print(f"result: {result}")
         finally:
             print("socket closed")
