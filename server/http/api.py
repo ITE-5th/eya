@@ -1,18 +1,12 @@
-import sys
-
 from flask import Flask, request
 from flask_json import FlaskJSON, json_response
 
-import server
 from face_recognition_model import FaceRecognitionModel
 from image_to_text_model import ImageToTextModel
 from misc.converter import Converter
 from server.http.face_model_map import FaceModelMap
 from server.http.route_names import Names
 from vqa_model import VqaModel
-
-sys.modules['skill-socket_ITE-5th.code'] = server
-sys.modules['skill-socket_ITE-5th'] = server
 
 vqa_model = VqaModel()
 itt_model = ImageToTextModel()
@@ -24,7 +18,7 @@ FlaskJSON(app)
 PORT = 9999
 
 
-@app.route(Names.VQA_ROUTE)
+@app.route(Names.VQA_ROUTE, methods=["post", "put"])
 def vqa():
     data = request.get_json(force=True)
     image = Converter.to_image(data["image"])
@@ -32,7 +26,7 @@ def vqa():
     return json_response(result=result)
 
 
-@app.route(Names.ITT_ROUTE)
+@app.route(Names.ITT_ROUTE, methods=["post", "put"])
 def itt():
     data = request.get_json(force=True)
     image = Converter.to_image(data["image"])
@@ -57,7 +51,7 @@ def start_face_recognition(user_name):
     return json_response(result="success")
 
 
-@app.route(common_face_route, methods=["get"])
+@app.route(common_face_route, methods=["post"])
 def face_recognition(user_name):
     model, _ = face_models[user_name]
     data = request.get_json(force=True)
