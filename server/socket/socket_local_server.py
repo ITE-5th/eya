@@ -2,24 +2,22 @@ import os
 import socket
 import threading
 
-from server.request_handler import RequestHandler
 from encoder_decoder.build_vocab import Vocabulary
 from image_to_text_model import ImageToTextModel
 from misc.connection import Connection
+from server.socket.socket_request_handler import SocketRequestHandler
 from vqa_model import VqaModel
 
 # just to use it
 Vocabulary()
 
 
-class LocalServer:
+class SocketLocalServer:
     def __init__(self, host=socket.gethostname(), ports=None):
         self.host = host
         if ports is None:
             ports = Connection.find_available_ports()
-        self.vqa_port = ports[0]
-        self.image_to_text_port = ports[1]
-        self.face_recognition_port = ports[2]
+        self.vqa_port, self.image_to_text_port, self.face_recognition_port = ports
         self.vqa_socket = self.create_socket(host, self.vqa_port)
         self.image_to_text_socket = self.create_socket(host, self.image_to_text_port)
         self.face_recognition_socket = self.create_socket(host, self.face_recognition_port)
@@ -34,7 +32,7 @@ class LocalServer:
         return st
 
     def handle_client_connection(self, client_socket):
-        handler = RequestHandler(self.vqa, self.image_to_text)
+        handler = SocketRequestHandler(self.vqa, self.image_to_text)
         handler.start(client_socket)
 
     def handle_socket(self, sock):
@@ -69,7 +67,7 @@ class LocalServer:
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'| xargs kill')
     first_port = 9500
-    server = LocalServer(ports=[first_port, first_port + 1, first_port + 2])
+    server = SocketLocalServer(ports=[first_port, first_port + 1, first_port + 2])
     # server = LocalServer(host="192.168.43.71", ports=[first_port, first_port + 1, first_port + 2])
 
     try:

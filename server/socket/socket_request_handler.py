@@ -24,7 +24,7 @@ sys.modules['skill-socket_ITE-5th.code'] = server
 sys.modules['skill-socket_ITE-5th'] = server
 
 
-class RequestHandler:
+class SocketRequestHandler:
     def __init__(self, vqa, itt):
         self.vqa = vqa
         self.itt = itt
