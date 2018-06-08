@@ -21,6 +21,8 @@ face_models = FaceModelMap()
 app = Flask(__name__)
 FlaskJSON(app)
 
+PORT = 9999
+
 
 @app.route(Names.VQA_ROUTE)
 def vqa():
@@ -90,3 +92,7 @@ def end_add_face(user_name, target_name):
     model.add_person(target_name, images)
     face_models[user_name] = model, []
     return json_response(result="success")
+
+
+if __name__ == '__main__':
+    app.run(port=PORT)
