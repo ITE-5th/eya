@@ -1,5 +1,7 @@
-from .image_message import ImageMessage
+from server.message.image_message import ImageMessage
 
 
 class AddPersonMessage(ImageMessage):
     pass
+
+
