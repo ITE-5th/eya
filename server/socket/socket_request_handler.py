@@ -15,7 +15,6 @@ from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
-from server.message.name_message import NameMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
@@ -32,9 +31,18 @@ class SocketRequestHandler:
         self.images = []
         self.base_path = FilePathManager.resolve("saved_images")
 
+    def register(self, message):
+        if not self.face_recognition:
+            self.face_recognition = FaceRecognitionModel.create_user(message.user_name)
+        return True
+
     @dispatch(StartFaceRecognitionMessage)
     def handle_message(self, message):
-        self.face_recognition = FaceRecognitionModel.create_user(message.name)
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
+
         return {
             "result": "success"
         }
@@ -49,6 +57,10 @@ class SocketRequestHandler:
 
     @dispatch(EndAddPersonMessage)
     def handle_message(self, message):
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
         if self.face_recognition is not None:
             self.face_recognition.add_person(message.name, self.images)
             self.images = []
@@ -58,6 +70,10 @@ class SocketRequestHandler:
 
     @dispatch(RemovePersonMessage)
     def handle_message(self, message):
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
         if self.face_recognition is not None:
             self.face_recognition.remove_person(message.name)
         return {
@@ -66,6 +82,10 @@ class SocketRequestHandler:
 
     @dispatch(FaceRecognitionMessage)
     def handle_message(self, message):
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
         return {
             "result": self.face_recognition.predict(message.image) if self.face_recognition is not None else "error"
         }
