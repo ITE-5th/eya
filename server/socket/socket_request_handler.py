@@ -15,6 +15,7 @@ from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
+from server.message.name_message import NameMessage
 from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
@@ -120,11 +121,13 @@ class SocketRequestHandler:
             receiver = Receiver(client_socket, True)
             while True:
                 message = receiver.receive()
-                message = Converter.to_object(message)
+                message = Converter.to_object(message, json=True)
                 if isinstance(message, CloseMessage):
                     break
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
+                if isinstance(message, NameMessage):
+                    print(message.name)
                 result = self.handle_message(message)
                 sender.send(result)
                 print(f"result: {result}")
