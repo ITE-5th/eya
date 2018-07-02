@@ -16,7 +16,6 @@ from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
 from server.message.name_message import NameMessage
-from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
@@ -33,87 +32,55 @@ class SocketRequestHandler:
         self.images = []
         self.base_path = FilePathManager.resolve("saved_images")
 
-    @dispatch(RegisterFaceRecognitionMessage)
-    def handle_message(self, message):
-        result = {
-        }
-        FaceRecognitionModel.register(message.name, remove_dir=False)
-        result["result"] = "success"
-        result["registered"] = True
-        return result
-
     @dispatch(StartFaceRecognitionMessage)
     def handle_message(self, message):
-        result = {
-
+        self.face_recognition = FaceRecognitionModel.create_user(message.name)
+        return {
+            "result": "success"
         }
-        try:
-            self.face_recognition = FaceRecognitionModel(message.name)
-            result["result"] = "success"
-        except FileNotFoundError:
-            result["result"] = "error"
-        return result
 
     @dispatch(AddPersonMessage)
     def handle_message(self, message):
-        result = {
-
-        }
         cv2.imwrite(f"{self.base_path}/image_{len(self.images) + 1}.jpg", message.image)
         self.images.append(message.image)
-        result["result"] = "success"
-        return result
+        return {
+            "result": "success"
+        }
 
     @dispatch(EndAddPersonMessage)
     def handle_message(self, message):
-        result = {
-
-        }
         if self.face_recognition is not None:
             self.face_recognition.add_person(message.name, self.images)
             self.images = []
-            result["result"] = "success"
-        else:
-            result["result"] = "error"
-        return result
+        return {
+            "result": "success" if self.face_recognition is not None else "error"
+        }
 
     @dispatch(RemovePersonMessage)
     def handle_message(self, message):
-        result = {
-
-        }
         if self.face_recognition is not None:
             self.face_recognition.remove_person(message.name)
-            result["result"] = "success"
-        else:
-            result["result"] = "error"
-        return result
+        return {
+            "result": "success" if self.face_recognition is not None else "error"
+        }
 
     @dispatch(FaceRecognitionMessage)
     def handle_message(self, message):
-        result = {
-
+        return {
+            "result": self.face_recognition.predict(message.image) if self.face_recognition is not None else "error"
         }
-        if self.face_recognition is not None:
-            result["result"] = self.face_recognition.predict(message.image)
-        else:
-            result["result"] = "error"
-        print(result)
-        return result
 
     @dispatch(VqaMessage)
     def handle_message(self, message):
-        result = {
+        return {
             "result": self.vqa.predict(message.question, message.image)
         }
-        return result
 
     @dispatch(ImageToTextMessage)
     def handle_message(self, message):
-        result = {
+        return {
             "result": self.itt.predict(message.image)
         }
-        return result
 
     def start(self, client_socket):
         try:
@@ -126,8 +93,6 @@ class SocketRequestHandler:
                     break
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
-                if isinstance(message, NameMessage):
-                    print(message.name)
                 result = self.handle_message(message)
                 sender.send(result)
                 print(f"result: {result}")
