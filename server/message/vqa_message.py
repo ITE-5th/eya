@@ -1,4 +1,4 @@
-from server.message.image_message import ImageMessage
+from .image_message import ImageMessage
 
 
 class VqaMessage(ImageMessage):

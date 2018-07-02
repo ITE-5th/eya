@@ -3,29 +3,38 @@ import socket
 import threading
 import winsound
 
+from misc.connection import Connection
 from server.request_test_handler import RequestHandler
 
 
-class LocalServer:
-    def __init__(self, host=socket.gethostname(), port=9000):
+class SocketLocalServer:
+    def __init__(self, host=socket.gethostname(), ports=None):
         self.host = host
-        self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((host, port))
-        self.socket.listen(5)
-        self.client_socket, self.address = None, None
+        if ports is None:
+            ports = Connection.find_available_ports()
+        self.vqa_port, self.image_to_text_port, self.face_recognition_port = ports
+        self.vqa_socket = self.create_socket(host, self.vqa_port)
+        self.image_to_text_socket = self.create_socket(host, self.image_to_text_port)
+        self.face_recognition_socket = self.create_socket(host, self.face_recognition_port)
+
+    @staticmethod
+    def create_socket(host, port):
+        st = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        st.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        st.bind((host, port))
+        st.listen(5)
+        return st
 
     def handle_client_connection(self, client_socket):
         handler = RequestHandler()
         handler.start(client_socket)
 
-    def start(self):
-        print('server started at {}:{}'.format(self.host, str(self.port)))
+    def handle_socket(self, sock):
         winsound.Beep(3000, 500)
+
         while True:
-            client_socket, address = self.socket.accept()
             winsound.Beep(2500, 500)
+            client_socket, address = sock.accept()
             print('Accepted connection from {}:{}'.format(address[0], address[1]))
             client_handler = threading.Thread(
                 target=self.handle_client_connection,
@@ -33,14 +42,31 @@ class LocalServer:
             )
             client_handler.start()
 
+    def start(self):
+        print(
+            f"server host = {self.host} \nvqa port = {self.vqa_port}, itt port = {self.image_to_text_port}, face port = {self.face_recognition_port}")
+        vqa_thread = threading.Thread(target=self.handle_socket, args=(self.vqa_socket,))
+        image_to_text_thread = threading.Thread(target=self.handle_socket, args=(self.image_to_text_socket,))
+        face_recognition_thread = threading.Thread(target=self.handle_socket, args=(self.face_recognition_socket,))
+        vqa_thread.start()
+        image_to_text_thread.start()
+        face_recognition_thread.start()
+        vqa_thread.join()
+        image_to_text_thread.join()
+        face_recognition_thread.join()
+
     def close(self):
-        self.socket.close()
+        self.vqa_socket.close()
+        self.image_to_text_socket.close()
+        self.face_recognition_socket.close()
 
 
 if __name__ == '__main__':
-    os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'|xargs kill')
-    # server = LocalServer(port=8888)
-    server = LocalServer(host="192.168.1.7", port=8888)
+    os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'| xargs kill')
+    first_port = 9500
+    # server = SocketLocalServer(ports=[first_port, first_port + 1, first_port + 2])
+    server = SocketLocalServer(host="192.168.1.8", ports=[first_port, first_port + 1, first_port + 2])
+
     try:
         server.start()
     finally:

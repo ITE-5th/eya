@@ -1,4 +1,4 @@
-from server.message.name_message import NameMessage
+from .name_message import NameMessage
 
 
 class RegisterFaceRecognitionMessage(NameMessage):

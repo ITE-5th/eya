@@ -5,6 +5,7 @@ import cv2
 from multipledispatch import dispatch
 
 import server
+from face.face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.converter import Converter
 from misc.receiver import Receiver
@@ -16,7 +17,6 @@ from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
-from server.message.register_face_recognition_message import RegisterFaceRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
@@ -31,41 +31,64 @@ class RequestHandler:
         self.images = []
         self.base_path = FilePathManager.resolve("saved_images")
 
-    @dispatch(RegisterFaceRecognitionMessage)
-    def handle_message(self, message):
-        result = {"result": message.name, "registered": True}
-        # FaceRecognitionModel.register(message.name, remove_dir=False)
-        return result
+    def register(self, message):
+        if not self.face_recognition:
+            self.face_recognition = FaceRecognitionModel.create_user(message.user_name)
+        return True
 
     @dispatch(StartFaceRecognitionMessage)
     def handle_message(self, message):
-        result = {"result": "success"}
-        return result
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
+
+        return {
+            "result": "success"
+        }
 
     @dispatch(AddPersonMessage)
     def handle_message(self, message):
-        result = {
-
-        }
         cv2.imwrite(f"{self.base_path}/image_{len(self.images) + 1}.jpg", message.image)
         self.images.append(message.image)
-        result["result"] = "success"
-        return result
+        return {
+            "result": "success"
+        }
 
     @dispatch(EndAddPersonMessage)
     def handle_message(self, message):
-        result = {"result": "success"}
-        return result
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
+        if self.face_recognition is not None:
+            self.face_recognition.add_person(message.name, self.images)
+            self.images = []
+        return {
+            "result": "success" if self.face_recognition is not None else "error"
+        }
 
     @dispatch(RemovePersonMessage)
     def handle_message(self, message):
-        result = {"result": "success"}
-        return result
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
+        if self.face_recognition is not None:
+            self.face_recognition.remove_person(message.name)
+        return {
+            "result": "success" if self.face_recognition is not None else "error"
+        }
 
     @dispatch(FaceRecognitionMessage)
     def handle_message(self, message):
-        result = {"result": "FaceRecognitionMessage"}
-        return result
+        if not self.register(message):
+            return {
+                "result": "error"
+            }
+        return {
+            "result": self.face_recognition.predict(message.image) if self.face_recognition is not None else "error"
+        }
 
     @dispatch(VqaMessage)
     def handle_message(self, message):
@@ -92,6 +115,7 @@ class RequestHandler:
 
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
+                print(message._type)
                 result = self.handle_message(message)
                 sender.send(result)
                 print(f"result: {result}")
