@@ -1,5 +1,6 @@
 import os
-from shutil import rmtree, copy2
+from enum import Enum
+from shutil import copy2
 
 import cv2
 import joblib
@@ -9,14 +10,19 @@ from face.predictor.similarity_predictor import SimilarityPredictor
 from file_path_manager import FilePathManager
 
 
+class ModelType(Enum):
+    EVM = 0
+    SIMILARITY = 1
+
+
 class FaceRecognitionModel:
-    def __init__(self, user_name, type="similarity"):
+    def __init__(self, user_name, type=ModelType.SIMILARITY):
         try:
-            if type == "evm":
+            if type == ModelType.EVM:
                 self.model_path = FilePathManager.resolve(
                     f"face/trained_models/{user_name}/base_model.model")
                 self.predictor = EvmPredictor(self.model_path)
-            elif type == "similarity":
+            elif type == ModelType.SIMILARITY:
                 self.model_path = FilePathManager.resolve(
                     f"face/trained_models/{user_name}/similarity.model")
                 self.predictor = SimilarityPredictor(self.model_path)
@@ -24,21 +30,22 @@ class FaceRecognitionModel:
             raise FileNotFoundError("The model was not found")
 
     @staticmethod
-    def register(name, remove_dir=False):
+    def create_user(name, type=ModelType.SIMILARITY):
+        FaceRecognitionModel.register(name)
+        return FaceRecognitionModel(name, type)
+
+    @staticmethod
+    def register(name):
         path = FilePathManager.resolve("face/trained_models")
         base_model_path = f"{path}/base_model.model"
         person_path = f"{path}/{name}"
         if os.path.exists(person_path):
-            if remove_dir:
-                rmtree(person_path)
-            else:
-                return
+            return
         os.makedirs(person_path)
         evm_model_path = f"{person_path}/evm.model"
         copy2(base_model_path, evm_model_path)
         insight_model_path = f"{person_path}/similarity.model"
-        data = {}
-        joblib.dump(data, insight_model_path)
+        joblib.dump({}, insight_model_path)
 
     def add_person(self, person_name, images):
         self.predictor.add_person(person_name, images)

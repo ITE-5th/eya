@@ -3,9 +3,9 @@ import socket
 import threading
 
 from encoder_decoder.build_vocab import Vocabulary
+from server.socket.socket_request_handler import SocketRequestHandler
 from image_to_text_model import ImageToTextModel
 from misc.connection import Connection
-from server.socket.socket_request_handler import SocketRequestHandler
 from vqa_model import VqaModel
 
 # just to use it
@@ -27,6 +27,7 @@ class SocketLocalServer:
     @staticmethod
     def create_socket(host, port):
         st = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        st.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         st.bind((host, port))
         st.listen(5)
         return st
@@ -67,8 +68,8 @@ class SocketLocalServer:
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'| xargs kill')
     first_port = 9500
-    server = SocketLocalServer(ports=[first_port, first_port + 1, first_port + 2])
-    # server = LocalServer(host="192.168.43.71", ports=[first_port, first_port + 1, first_port + 2])
+    # server = SocketLocalServer(ports=[first_port, first_port + 1, first_port + 2])
+    server = SocketLocalServer(host="192.168.1.11", ports=[first_port, first_port + 1, first_port + 2])
 
     try:
         server.start()
