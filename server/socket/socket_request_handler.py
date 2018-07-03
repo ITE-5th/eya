@@ -1,10 +1,10 @@
 import sys
 
 import cv2
+from face_recognition_model import FaceRecognitionModel
 from multipledispatch import dispatch
 
 import server
-from face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.converter import Converter
 from misc.receiver import Receiver
@@ -113,7 +113,13 @@ class SocketRequestHandler:
                     break
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
-                result = self.handle_message(message)
+                try:
+                    result = self.handle_message(message)
+                except:
+                    result = {
+                        "result": "error"
+                    }
+
                 sender.send(result)
                 print(f"result: {result}")
         finally:
