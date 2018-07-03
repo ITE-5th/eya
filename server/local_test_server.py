@@ -30,7 +30,6 @@ class SocketLocalServer:
         handler.start(client_socket)
 
     def handle_socket(self, sock):
-        winsound.Beep(3000, 500)
 
         while True:
             winsound.Beep(2500, 500)
