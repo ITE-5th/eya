@@ -32,7 +32,6 @@ class Converter(object):
     @staticmethod
     def to_image(img_data):
         cv_image = cv2.imdecode(np.fromstring(base64.decodebytes(img_data.encode()), np.uint8), cv2.IMREAD_COLOR)
-        cv2.imwrite('temp.jpg', cv_image)
         return cv_image
 
 

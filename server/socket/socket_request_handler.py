@@ -1,10 +1,11 @@
 import sys
 
 import cv2
-from face_recognition_model import FaceRecognitionModel
+import matplotlib.pyplot as plt
 from multipledispatch import dispatch
 
 import server
+from face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.converter import Converter
 from misc.receiver import Receiver
@@ -102,6 +103,15 @@ class SocketRequestHandler:
             "result": self.itt.predict(message.image)
         }
 
+    @staticmethod
+    def show_image(image):
+        cv2.imwrite('temp.jpg', image)
+        plot_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        plt.cla()
+        plt.axis("off")
+        plt.imshow(plot_image)
+        plt.show()
+
     def start(self, client_socket):
         try:
             sender = Sender(client_socket, True)
@@ -113,13 +123,13 @@ class SocketRequestHandler:
                     break
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
+                    self.show_image(message.image)
                 try:
                     result = self.handle_message(message)
                 except:
                     result = {
                         "result": "error"
                     }
-
                 sender.send(result)
                 print(f"result: {result}")
         finally:
