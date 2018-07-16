@@ -122,6 +122,7 @@ class SocketRequestHandler:
 
                 sender.send(result)
                 print(f"result: {result}")
-        finally:
+        except Exception as e:
             print("socket closed")
+        finally:
             client_socket.close()

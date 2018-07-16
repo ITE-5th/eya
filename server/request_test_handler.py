@@ -61,6 +61,7 @@ class RequestHandler:
             return {
                 "result": "error"
             }
+
         if self.face_recognition is not None:
             self.face_recognition.add_person(message.name, self.images)
             self.images = []
@@ -70,15 +71,20 @@ class RequestHandler:
 
     @dispatch(RemovePersonMessage)
     def handle_message(self, message):
-        if not self.register(message):
+        try:
+            if not self.register(message):
+                return {
+                    "result": "error"
+                }
+            if self.face_recognition is not None:
+                self.face_recognition.remove_person(message.name)
+            return {
+                "result": "success" if self.face_recognition is not None else "error"
+            }
+        except:
             return {
                 "result": "error"
             }
-        if self.face_recognition is not None:
-            self.face_recognition.remove_person(message.name)
-        return {
-            "result": "success" if self.face_recognition is not None else "error"
-        }
 
     @dispatch(FaceRecognitionMessage)
     def handle_message(self, message):
@@ -116,10 +122,17 @@ class RequestHandler:
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
                 print(message._type)
-                result = self.handle_message(message)
+                try:
+                    result = self.handle_message(message)
+                except:
+                    result = {
+                        "result": "error"
+                    }
+
                 sender.send(result)
                 print(f"result: {result}")
+        except Exception as e:
+            print("socket closed")
         finally:
             winsound.Beep(1000, 500)
-            print("socket closed")
             client_socket.close()
