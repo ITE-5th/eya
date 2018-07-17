@@ -7,3 +7,4 @@ class ObjectRecognitionModel:
 
     def predict(self, image):
         result = self.predictor.predict(image)
+        return ",".join(result)
