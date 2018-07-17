@@ -21,7 +21,7 @@ class SocketLocalServer:
         self.face_recognition_socket = self.create_socket(host, self.face_recognition_port)
         self.vqa = VqaModel()
         self.image_to_text = ImageToTextModel()
-        self.object_recognition = ObjectRecognitionModel(unique_objects=False)
+        self.object_recognition = ObjectRecognitionModel()
 
     @staticmethod
     def create_socket(host, port):

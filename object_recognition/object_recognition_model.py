@@ -1,17 +1,20 @@
+from collections import Counter
+
 import cv2
+import inflect
 
 from file_path_manager import FilePathManager
 from predictor.retina_net.retina_net_predictor import RetinaNetPredictor
 
 
 class ObjectRecognitionModel:
-    def __init__(self, unique_objects=True, use_gpu=True):
-        self.unique_objects = unique_objects
+    def __init__(self, use_gpu=True):
         self.predictor = RetinaNetPredictor(use_gpu)
+        self.p = inflect.engine()
 
     def process_result(self, result):
-        if self.unique_objects:
-            result = list(set(result))
+        counter = Counter(result)
+        result = [f"{value} {self.p.plural(key, value)}" for key, value in counter.items()]
         return result
 
     def predict(self, image):
