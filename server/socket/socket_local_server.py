@@ -14,9 +14,10 @@ class SocketLocalServer:
         self.host = host
         if ports is None:
             ports = Connection.find_available_ports()
-        self.vqa_port, self.image_to_text_port, self.face_recognition_port = ports
+        self.vqa_port, self.image_to_text_port, self.object_recognition_port, self.face_recognition_port = ports
         self.vqa_socket = self.create_socket(host, self.vqa_port)
         self.image_to_text_socket = self.create_socket(host, self.image_to_text_port)
+        self.object_recognition_socket = self.create_socket(host, self.object_recognition_port)
         self.face_recognition_socket = self.create_socket(host, self.face_recognition_port)
         self.vqa = VqaModel()
         self.image_to_text = ImageToTextModel()
@@ -46,21 +47,25 @@ class SocketLocalServer:
 
     def start(self):
         print(
-            f"vqa port = {self.vqa_port}, itt port = {self.image_to_text_port}, face port = {self.face_recognition_port}")
+            f"vqa port = {self.vqa_port}, itt port = {self.image_to_text_port}, object recognition port = {self.object_recognition_port}, face recognition port = {self.face_recognition_port}")
         vqa_thread = threading.Thread(target=self.handle_socket, args=(self.vqa_socket,))
         image_to_text_thread = threading.Thread(target=self.handle_socket, args=(self.image_to_text_socket,))
+        object_recognition_thread = threading.Thread(target=self.handle_socket, args=(self.object_recognition_socket,))
         face_recognition_thread = threading.Thread(target=self.handle_socket, args=(self.face_recognition_socket,))
         vqa_thread.start()
         image_to_text_thread.start()
         face_recognition_thread.start()
+        object_recognition_thread.start()
         vqa_thread.join()
         image_to_text_thread.join()
+        object_recognition_thread.join()
         face_recognition_thread.join()
 
     def close(self):
         self.vqa_socket.close()
         self.image_to_text_socket.close()
         self.face_recognition_socket.close()
+        self.object_recognition_socket.close()
 
 
 if __name__ == '__main__':
@@ -70,7 +75,6 @@ if __name__ == '__main__':
     ports = [first_port + i for i in range(number_of_services)]
     # server = SocketLocalServer(ports=ports)
     server = SocketLocalServer(host="192.168.43.71", ports=ports)
-
     try:
         server.start()
     finally:
