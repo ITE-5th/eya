@@ -1,10 +1,11 @@
 import sys
 
 import cv2
-from face_recognition_model import FaceRecognitionModel
+import matplotlib.pyplot as plt
 from multipledispatch import dispatch
 
 import server
+from face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.converter import Converter
 from misc.receiver import Receiver
@@ -15,6 +16,7 @@ from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
+from server.message.object_recognition_message import ObjectRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
@@ -24,9 +26,10 @@ sys.modules['skill-socket_ITE-5th'] = server
 
 
 class SocketRequestHandler:
-    def __init__(self, vqa, itt):
+    def __init__(self, vqa, itt, obj_rec):
         self.vqa = vqa
         self.itt = itt
+        self.obj_rec = obj_rec
         self.face_recognition = None
         self.images = []
         self.base_path = FilePathManager.resolve("saved_images")
@@ -102,6 +105,21 @@ class SocketRequestHandler:
             "result": self.itt.predict(message.image)
         }
 
+    @dispatch(ObjectRecognitionMessage)
+    def handle_message(self, message):
+        return {
+            "result": self.obj_rec.predict(message.image)
+        }
+
+    @staticmethod
+    def show_image(image):
+        cv2.imwrite(FilePathManager.resolve('captured.jpg'), image)
+        plot_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        plt.cla()
+        plt.axis("off")
+        plt.imshow(plot_image)
+        plt.show()
+
     def start(self, client_socket):
         try:
             sender = Sender(client_socket, True)
@@ -113,15 +131,15 @@ class SocketRequestHandler:
                     break
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
+                    self.show_image(message.image)
                 try:
                     result = self.handle_message(message)
                 except:
                     result = {
                         "result": "error"
                     }
-
                 sender.send(result)
-                print(f"result: {result}")
+                print(f"result: {result['result']}")
         except Exception as e:
             print("socket closed")
         finally:

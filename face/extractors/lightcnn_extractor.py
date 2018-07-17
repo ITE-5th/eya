@@ -6,7 +6,7 @@ from extractors.base_extractor import BaseExtractor
 from extractors.models.lightcnn.light_cnn import LightCNN_29Layers_v2
 from file_path_manager import FilePathManager
 from misc.utils import Utils
-from transforms.resize import Resize
+from face.transforms.resize import Resize
 
 
 class LightCNNExtractor(BaseExtractor):

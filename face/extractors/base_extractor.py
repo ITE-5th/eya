@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from bases.stage import Stage
-from transforms.resize import Resize
+from face.transforms.resize import Resize
 
 
 class BaseExtractor(Stage):

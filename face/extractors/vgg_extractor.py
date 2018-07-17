@@ -6,7 +6,7 @@ from extractors.base_extractor import BaseExtractor
 from extractors.models.vgg.vgg_face import vgg_face
 from face.misc.utils import Utils
 from file_path_manager import FilePathManager
-from transforms.resize import Resize
+from face.transforms.resize import Resize
 
 
 class VggExtractor(BaseExtractor):
