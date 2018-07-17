@@ -2,9 +2,10 @@ import os
 import socket
 import threading
 
-from server.socket.socket_request_handler import SocketRequestHandler
 from image_to_text_model import ImageToTextModel
 from misc.connection import Connection
+from object_recognition_model import ObjectRecognitionModel
+from server.socket.socket_request_handler import SocketRequestHandler
 from vqa_model import VqaModel
 
 
@@ -19,6 +20,7 @@ class SocketLocalServer:
         self.face_recognition_socket = self.create_socket(host, self.face_recognition_port)
         self.vqa = VqaModel()
         self.image_to_text = ImageToTextModel()
+        self.object_recognition = ObjectRecognitionModel()
 
     @staticmethod
     def create_socket(host, port):
@@ -29,7 +31,7 @@ class SocketLocalServer:
         return st
 
     def handle_client_connection(self, client_socket):
-        handler = SocketRequestHandler(self.vqa, self.image_to_text)
+        handler = SocketRequestHandler(self.vqa, self.image_to_text, self.object_recognition)
         handler.start(client_socket)
 
     def handle_socket(self, sock):
@@ -63,9 +65,11 @@ class SocketLocalServer:
 
 if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'| xargs kill')
+    number_of_services = 4
     first_port = 9500
-    # server = SocketLocalServer(ports=[first_port, first_port + 1, first_port + 2])
-    server = SocketLocalServer(host="192.168.43.71", ports=[first_port, first_port + 1, first_port + 2])
+    ports = [first_port + i for i in range(number_of_services)]
+    # server = SocketLocalServer(ports=ports)
+    server = SocketLocalServer(host="192.168.43.71", ports=ports)
 
     try:
         server.start()
