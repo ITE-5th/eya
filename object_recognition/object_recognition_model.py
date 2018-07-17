@@ -4,12 +4,12 @@ import cv2
 import inflect
 
 from file_path_manager import FilePathManager
-from predictor.retina_net.retina_net_predictor import RetinaNetPredictor
+from object_recognition.predictor.retina_net.retina_net_predictor import RetinaNetPredictor
 
 
 class ObjectRecognitionModel:
-    def __init__(self, use_gpu=True):
-        self.predictor = RetinaNetPredictor(use_gpu)
+    def __init__(self):
+        self.predictor = RetinaNetPredictor()
         self.p = inflect.engine()
 
     def process_result(self, result):
@@ -24,6 +24,6 @@ class ObjectRecognitionModel:
 
 
 if __name__ == '__main__':
-    model = ObjectRecognitionModel(use_gpu=True)
-    image = cv2.imread(FilePathManager.resolve("vqa/test_images/girl.jpg"))
+    model = ObjectRecognitionModel()
+    image = cv2.imread(FilePathManager.resolve("vqa/test_images/doing.jpg"))
     print(model.predict(image))

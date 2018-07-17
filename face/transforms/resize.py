@@ -1,7 +1,7 @@
 import cv2
 
 from face.misc.utils import Utils
-from transforms.base_transform import BaseTransform
+from face.transforms.base_transform import BaseTransform
 
 
 class Resize(BaseTransform):

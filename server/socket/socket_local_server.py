@@ -73,8 +73,8 @@ if __name__ == '__main__':
     number_of_services = 4
     first_port = 9500
     ports = [first_port + i for i in range(number_of_services)]
-    # server = SocketLocalServer(ports=ports)
-    server = SocketLocalServer(host="192.168.43.71", ports=ports)
+    server = SocketLocalServer(host=socket.gethostname(), ports=ports)
+    # server = SocketLocalServer(host="192.168.43.71", ports=ports)
     try:
         server.start()
     finally:

@@ -4,23 +4,21 @@ from dlt.util import cv2torch
 from torchvision.transforms import transforms
 
 from file_path_manager import FilePathManager
+from object_recognition.predictor.predictor import Predictor
+from object_recognition.predictor.retina_net import model
 from object_recognition.transforms.normalizer import Normalizer
 from object_recognition.transforms.resizer import Resizer
-from predictor.predictor import Predictor
-from predictor.retina_net import model
 
 
 class RetinaNetPredictor(Predictor):
 
-    def __init__(self, use_gpu=True):
+    def __init__(self):
         self.classes = RetinaNetPredictor.load_class_names(
             FilePathManager.resolve("object_recognition/data/coco.names"))
         self.transform = transforms.Compose([Normalizer(), Resizer()])
         self.model = model.resnet50(num_classes=len(self.classes))
-        self.model.load_state_dict(torch.load("models/coco_resnet_50.pt"))
-        self.use_gpu = use_gpu
-        if use_gpu:
-            self.model = self.model.cuda()
+        self.model.load_state_dict(torch.load(FilePathManager.resolve("object_recognition/models/coco_resnet_50.pt")))
+        self.model = self.model.cuda()
         self.model.eval()
 
     @staticmethod
@@ -39,9 +37,7 @@ class RetinaNetPredictor(Predictor):
 
     def predict(self, image):
         image = self.convert_image(image)
-        image = image.float()
-        if self.use_gpu:
-            image = image.cuda()
+        image = image.float().cuda()
         with torch.no_grad():
             scores, classification, transformed_anchors = self.model(image)
             idxs = np.where(scores > 0.5)
