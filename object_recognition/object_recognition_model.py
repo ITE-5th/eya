@@ -11,23 +11,33 @@ from object_recognition.predictor.retina_net.retina_net_predictor import RetinaN
 class ObjectRecognitionModel:
     def __init__(self):
         self.predictor = RetinaNetPredictor()
+        self.classes = set(self.predictor.classes)
         self.p = inflect.engine()
-        # self.word2vec = gensim.models.KeyedVectors.load(
-        #     FilePathManager.resolve("object_recognition/data/word2vec.model"))
 
     def count_objects(self, counter):
         result = [f"{value} {self.p.plural(key, value)}" for key, value in counter.items()]
         return result
 
+    @staticmethod
+    def extract_name(syn):
+        temp = syn.name()
+        return temp[:temp.index(".")]
+
+    def check_object(self, object_name):
+        obj = wn.synsets(object_name)[0]
+        hypo = set([object_name] + [self.extract_name(i) for i in obj.closure(lambda s: s.hyponyms())])
+        return len(hypo.intersection(self.classes)) != 0
+
     def count_object(self, counter, object_name):
+        if not self.check_object(object_name):
+            return ["-1"]
         result = []
         obj = wn.synsets(object_name)[0]
         for key, value in counter.items():
             k = wn.synsets(key)[0]
             hyper = set([i for i in k.closure(lambda s: s.hypernyms())])
             if object_name == key or obj in hyper:
-                result.append(f"{value} {key}")
-        result = ",".join(result)
+                result.append(f"{value} {self.p.plural(key, value)}")
         return result
 
     def predict(self, image, object_name=""):
@@ -35,14 +45,13 @@ class ObjectRecognitionModel:
         counter = Counter(objects)
         if object_name == "":
             result = self.count_objects(counter)
-            result = ",".join(result)
         else:
             result = self.count_object(counter, object_name)
-            result = str(result)
+        result = ",".join(result)
         return result
 
 
 if __name__ == '__main__':
     model = ObjectRecognitionModel()
-    image = cv2.imread(FilePathManager.resolve("vqa/test_images/girl.jpg"))
-    print(model.predict(image, object_name="orange"))
+    image = cv2.imread(FilePathManager.resolve("vqa/test_images/two_girls.jpg"))
+    print(model.predict(image, object_name="person"))
