@@ -20,13 +20,14 @@ class ObjectRecognitionModel:
         return result
 
     def count_object(self, counter, object_name):
-        result = 0
+        result = []
         obj = wn.synsets(object_name)[0]
         for key, value in counter.items():
             k = wn.synsets(key)[0]
             hyper = set([i for i in k.closure(lambda s: s.hypernyms())])
             if object_name == key or obj in hyper:
-                result += value
+                result.append(f"{value} {key}")
+        result = ",".join(result)
         return result
 
     def predict(self, image, object_name=""):
