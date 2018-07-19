@@ -1,4 +1,5 @@
 import sys
+import warnings
 
 import cv2
 import matplotlib.pyplot as plt
@@ -20,6 +21,8 @@ from server.message.object_recognition_message import ObjectRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
+
+warnings.filterwarnings("ignore")
 
 sys.modules['skill-socket_ITE-5th.code'] = server
 sys.modules['skill-socket_ITE-5th'] = server
@@ -108,7 +111,7 @@ class SocketRequestHandler:
     @dispatch(ObjectRecognitionMessage)
     def handle_message(self, message):
         return {
-            "result": self.obj_rec.predict(message.image)
+            "result": self.obj_rec.predict(message.image, message.object_name)
         }
 
     @staticmethod

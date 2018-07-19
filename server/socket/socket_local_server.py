@@ -2,11 +2,12 @@ import os
 import socket
 import threading
 
+from server.socket.socket_request_handler import SocketRequestHandler
 from image_to_text_model import ImageToTextModel
 from misc.connection import Connection
 from object_recognition_model import ObjectRecognitionModel
-from server.socket.socket_request_handler import SocketRequestHandler
 from vqa_model import VqaModel
+
 
 
 class SocketLocalServer:
