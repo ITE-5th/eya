@@ -1,4 +1,6 @@
+import random
 import sys
+import traceback
 import winsound
 
 import cv2
@@ -17,6 +19,7 @@ from server.message.end_add_person_message import EndAddPersonMessage
 from server.message.face_recognition_message import FaceRecognitionMessage
 from server.message.image_message import ImageMessage
 from server.message.image_to_text_message import ImageToTextMessage
+from server.message.object_recognition_message import ObjectRecognitionMessage
 from server.message.remove_person_message import RemovePersonMessage
 from server.message.start_face_recognition_message import StartFaceRecognitionMessage
 from server.message.vqa_message import VqaMessage
@@ -28,6 +31,7 @@ sys.modules['skill-socket_ITE-5th'] = server
 class RequestHandler:
     def __init__(self):
         self.face_recognition = None
+
         self.images = []
         self.base_path = FilePathManager.resolve("saved_images")
 
@@ -106,6 +110,24 @@ class RequestHandler:
         result = {"result": "image to text"}
         return result
 
+    @dispatch(ObjectRecognitionMessage)
+    def handle_message(self, message):
+        print(message)
+        response = ["", "-1", "3 dogs", "4 bananas,1 apple, 5 oranges", "1 person"]
+        return {
+            "result": random.choice(response)
+        }
+
+    @staticmethod
+    def show_image(image):
+        import matplotlib.pyplot as plt
+        cv2.imwrite(FilePathManager.resolve('captured.jpg'), image)
+        plot_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        plt.cla()
+        plt.axis("off")
+        plt.imshow(plot_image)
+        plt.show()
+
     def start(self, client_socket):
         receiver = Receiver(client_socket, json=True)
         sender = Sender(client_socket, json=True)
@@ -113,14 +135,13 @@ class RequestHandler:
         try:
             while True:
                 message = receiver.receive()
-
                 message = Converter.to_object(message, json=True)
-
                 if isinstance(message, CloseMessage):
                     break
 
                 if isinstance(message, ImageMessage):
                     message.image = Converter.to_image(message.image)
+                    self.show_image(message.image)
                 print(message._type)
                 try:
                     result = self.handle_message(message)
@@ -132,6 +153,9 @@ class RequestHandler:
                 sender.send(result)
                 print(f"result: {result}")
         except Exception as e:
+            print(str(e))
+            print(str(traceback.format_exc()))
+
             print("socket closed")
         finally:
             winsound.Beep(1000, 500)

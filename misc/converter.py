@@ -46,7 +46,7 @@ if __name__ == '__main__':
     RemovePersonMessage()
     StartFaceRecognitionMessage()
     VqaMessage()
-    ObjectRecognitionMessage()
+    ObjectRecognitionMessage(image=None, object_name=None)
 
 #  from server.message.add_person_message import AddPersonMessage
 # from server.message.close_message import CloseMessage

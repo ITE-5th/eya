@@ -7,3 +7,6 @@ class FilePathManager:
     @staticmethod
     def resolve(path):
         return "{}/{}".format(FilePathManager.base_dir, path)
+
+
+print(FilePathManager.resolve(''))
