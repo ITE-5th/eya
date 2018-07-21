@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from bases.stage import Stage
+from face.bases.stage import Stage
 
 
 class BaseClassifier(Stage):

@@ -1,7 +1,5 @@
-import torch
 import torch.nn as nn
 from torchvision import models
-from torch.autograd import Variable
 
 pretrained_model = models.vgg16(pretrained=True)
 

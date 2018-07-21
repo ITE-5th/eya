@@ -54,7 +54,7 @@ appos = {
     "you've": "you have",
     "'re": " are",
     "wasn't": "was not",
-    "we'll": " will"
+    "we'll": "we will"
 }
 
 

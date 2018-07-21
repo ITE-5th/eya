@@ -1,7 +1,7 @@
 import mxnet as mx
 
-from detectors.base_detector import BaseDetector
-from extractors.models.insightface.mtcnn_detector import MtcnnDetector
+from face.detectors.base_detector import BaseDetector
+from face.extractors.models.insightface.mtcnn_detector import MtcnnDetector
 from file_path_manager import FilePathManager
 
 

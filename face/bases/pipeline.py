@@ -1,6 +1,6 @@
 from typing import List
 
-from bases.stage import Stage
+from face.bases.stage import Stage
 from face.misc.time_logger import TimeLogger
 
 

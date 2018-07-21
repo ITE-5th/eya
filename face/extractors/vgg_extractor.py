@@ -2,8 +2,8 @@ import torch
 from dlt.util import torch2cv
 from torch.autograd import Variable
 
-from extractors.base_extractor import BaseExtractor
-from extractors.models.vgg.vgg_face import vgg_face
+from face.extractors.base_extractor import BaseExtractor
+from face.extractors.models.vgg.vgg_face import vgg_face
 from face.misc.utils import Utils
 from file_path_manager import FilePathManager
 from face.transforms.resize import Resize

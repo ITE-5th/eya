@@ -1,8 +1,8 @@
 from dlt.util import torch2cv
 from torch.autograd import Variable
 
-from extractors.base_extractor import BaseExtractor
-from extractors.models.openface.load_openface_net import prepareOpenFace
+from face.extractors.base_extractor import BaseExtractor
+from face.extractors.models.openface.load_openface_net import prepareOpenFace
 from face.misc.utils import Utils
 from face.transforms.resize import Resize
 

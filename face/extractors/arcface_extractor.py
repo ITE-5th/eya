@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-from extractors.base_extractor import BaseExtractor
-from extractors.models.insightface import face_preprocess
-from extractors.models.insightface.face_embedding import FaceModel
+from face.extractors.base_extractor import BaseExtractor
+from face.extractors.models.insightface import face_preprocess
+from face.extractors.models.insightface.face_embedding import FaceModel
 from file_path_manager import FilePathManager
 
 

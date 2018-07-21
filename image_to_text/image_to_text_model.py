@@ -1,10 +1,10 @@
-from image_to_text.predictor.convcap_predictor import ConvcapPredictor
+from image_to_text.predictor.convolutional_caption_predictor import ConvolutionalCaptionPredictor
 
 
 class ImageToTextModel:
 
     def __init__(self):
-        self.predictor = ConvcapPredictor()
+        self.predictor = ConvolutionalCaptionPredictor()
 
     @staticmethod
     def process_result(caption):

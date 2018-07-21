@@ -7,14 +7,14 @@ from PIL import Image
 from torch.autograd import Variable
 from torchvision.transforms import transforms, Scale
 
-from convcap.beamsearch import beamsearch
-from convcap.convcap import convcap
-from convcap.vggfeats import Vgg16Feats
 from file_path_manager import FilePathManager
+from image_to_text.convolutional_caption.beamsearch import beamsearch
+from image_to_text.convolutional_caption.convcap import convcap
+from image_to_text.convolutional_caption.vggfeats import Vgg16Feats
 from image_to_text.predictor.predictor import Predictor
 
 
-class ConvcapPredictor(Predictor):
+class ConvolutionalCaptionPredictor(Predictor):
     ts = transforms.Compose([
         Scale([224, 224]),
         transforms.ToTensor(),
@@ -37,7 +37,7 @@ class ConvcapPredictor(Predictor):
 
         model_convcap = convcap(numwords, num_layers, is_attention=True)
         model_convcap.cuda()
-        checkpoint = torch.load(FilePathManager.resolve("image_to_text/models/convcap-model.pth"))
+        checkpoint = torch.load(FilePathManager.resolve("image_to_text/models/convolutional_caption-model.pth"))
         model_convcap.load_state_dict(checkpoint['state_dict'])
         model_imgcnn.load_state_dict(checkpoint['img_state_dict'])
 
@@ -50,7 +50,7 @@ class ConvcapPredictor(Predictor):
     def convert_image(image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(image)
-        image = ConvcapPredictor.ts(image)
+        image = ConvolutionalCaptionPredictor.ts(image)
         image = image.unsqueeze(0)
         return image
 

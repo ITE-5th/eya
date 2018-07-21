@@ -2,8 +2,8 @@ import torch
 from dlt.util import torch2cv
 from torch.autograd import Variable
 
-from extractors.base_extractor import BaseExtractor
-from extractors.models.lightcnn.light_cnn import LightCNN_29Layers_v2
+from face.extractors.base_extractor import BaseExtractor
+from face.extractors.models.lightcnn.light_cnn import LightCNN_29Layers_v2
 from file_path_manager import FilePathManager
 from misc.utils import Utils
 from face.transforms.resize import Resize

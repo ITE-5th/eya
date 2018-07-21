@@ -1,6 +1,6 @@
 import dlib
 
-from detectors.base_detector import BaseDetector
+from face.detectors.base_detector import BaseDetector
 from face.misc.utils import Utils
 from file_path_manager import FilePathManager
 
