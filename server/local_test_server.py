@@ -64,7 +64,7 @@ if __name__ == '__main__':
     os.system('ps -fA | grep python | tail -n1 | awk \'{ print $3 }\'| xargs kill')
     first_port = 9500
     # server = SocketLocalServer(ports=[first_port, first_port + 1, first_port + 2])
-    server = SocketLocalServer(host="192.168.1.8", ports=[first_port, first_port + 1, first_port + 2])
+    server = SocketLocalServer(host="192.168.1.7", ports=[first_port, first_port + 1, first_port + 2])
 
     try:
         server.start()
