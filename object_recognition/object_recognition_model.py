@@ -24,9 +24,12 @@ class ObjectRecognitionModel:
         return temp[:temp.index(".")]
 
     def check_object(self, object_name):
-        obj = wn.synsets(object_name)[0]
+        obj = wn.synsets(object_name)
+        if not obj:
+            return False
+        obj = obj[0]
         hypo = set([object_name] + [self.extract_name(i) for i in obj.closure(lambda s: s.hyponyms())])
-        return len(hypo.intersection(self.classes)) != 0
+        return len(hypo.intersection(self.classes))
 
     def count_object(self, counter, object_name):
         if not self.check_object(object_name):
@@ -46,6 +49,10 @@ class ObjectRecognitionModel:
         if object_name == "":
             result = self.count_objects(counter)
         else:
+            object_name = object_name.strip()
+            if self.p.singular_noun(object_name):
+                object_name = self.p.singular_noun(object_name)
+            object_name = object_name.strip()
             result = self.count_object(counter, object_name)
         result = ",".join(result)
         return result
@@ -54,4 +61,4 @@ class ObjectRecognitionModel:
 if __name__ == '__main__':
     model = ObjectRecognitionModel()
     image = cv2.imread(FilePathManager.resolve("vqa/test_images/two_girls.jpg"))
-    print(model.predict(image, object_name="person"))
+    print(model.predict(image, object_name="people"))

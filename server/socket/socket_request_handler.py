@@ -137,13 +137,14 @@ class SocketRequestHandler:
                     self.show_image(message.image)
                 try:
                     result = self.handle_message(message)
-                except:
+                except Exception as e:
+                    print(e)
                     result = {
                         "result": "error"
                     }
                 sender.send(result)
-                print(f"result: {result['result']}")
-        except Exception as e:
+                print(f"output: {result['result']}")
+        except:
             print("socket closed")
         finally:
             client_socket.close()
