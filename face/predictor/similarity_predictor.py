@@ -15,7 +15,7 @@ from file_path_manager import FilePathManager
 
 class SimilarityPredictor:
 
-    def __init__(self, model_path, extractor: BaseExtractor = DLibExtractor(), threshold: float = 0.935, align=True):
+    def __init__(self, model_path, extractor: BaseExtractor = DLibExtractor(), threshold: float = 0.937, align=False):
         super().__init__()
         self.pipeline = Pipeline([
             DLibDetector(scale=1),
@@ -47,12 +47,12 @@ class SimilarityPredictor:
             if sim > max_sim:
                 max_per = clz
                 max_sim = sim
-        return max_per if max_sim >= self.threshold else EVM.UNKNOWN, max_sim
+
+        return max_per.replace("_", " ").title() if max_sim >= self.threshold else EVM.UNKNOWN
 
     def predict_from_image(self, image):
-        faces = self.pipeline(image)
-        faces = faces[0]
-        return [self.detect(faces[i]) for i in range(faces.shape[0])]
+        faces, rects, _ = self.pipeline(image)
+        return [(self.detect(faces[i]), rects[i]) for i in range(faces.shape[0])]
 
     def predict_from_path(self, path):
         return self.predict_from_image(cv2.imread(path))

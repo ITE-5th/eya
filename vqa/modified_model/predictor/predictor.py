@@ -63,7 +63,8 @@ class Predictor:
         values, indices = result.topk(self.k)
         return [(str(label2ans[i]), value.item()) for i, value in zip(indices, values)]
 
-    def predict_from_models(self, image_features, spatial_features, question):
+    @staticmethod
+    def predict_from_models(image_features, spatial_features, question):
         result = torch.zeros(1, num_answers)
         for i in range(len(models)):
             model = models[i]

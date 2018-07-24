@@ -1,7 +1,7 @@
 from multiprocessing import cpu_count
 from multiprocessing.pool import Pool
 
-from transforms.base_transform import BaseTransform
+from face.transforms.base_transform import BaseTransform
 
 
 class Crop(BaseTransform):

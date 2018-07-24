@@ -94,4 +94,3 @@ class ImageFeaturesExtractor:
 
 if __name__ == '__main__':
     result = ImageFeaturesExtractor.extract_from_path(FilePathManager.resolve("face/test_images/zaher.jpg"))
-    time.sleep(10)

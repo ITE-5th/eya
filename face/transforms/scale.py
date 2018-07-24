@@ -1,7 +1,7 @@
 import numpy as np
 
 from face.misc.utils import Utils
-from transforms.base_transform import BaseTransform
+from face.transforms.base_transform import BaseTransform
 
 
 class Scale(BaseTransform):

@@ -1,9 +1,11 @@
 import os
 from enum import Enum
+from random import random
 from shutil import copy2
 
 import cv2
 import joblib
+import matplotlib.pyplot as plt
 
 from face.predictor.evm_predictor import EvmPredictor
 from face.predictor.similarity_predictor import SimilarityPredictor
@@ -53,13 +55,35 @@ class FaceRecognitionModel:
     def remove_person(self, person_name):
         self.predictor.remove_person(person_name)
 
+    def show_result(self, image, predicted):
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        plt.cla()
+        plt.axis("off")
+        plt.imshow(image)
+        for (name, rect) in predicted:
+            color = (random(), random(), random())
+            x, y, w, h = rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top()
+            rect = plt.Rectangle((x, y),
+                                 w,
+                                 h,
+                                 fill=False,
+                                 edgecolor=color,
+                                 linewidth=2.5)
+            plt.gca().add_patch(rect)
+            plt.gca().text(x + 15, y - 10,
+                           name,
+                           bbox=dict(facecolor=color, alpha=0.5), fontsize=9, color='white')
+        plt.show()
+
     def predict(self, face):
-        temp = self.predictor.predict_from_image(face)
-        temp = [f"{x[0]} {x[1]}" for x in temp]
-        return ",".join(temp)
+        predicted = self.predictor.predict_from_image(face)
+        self.show_result(face, predicted)
+        predicted = [x[0] for x in predicted]
+        return ",".join(predicted)
 
 
 if __name__ == '__main__':
     model = FaceRecognitionModel("zaher")
-    face = cv2.imread(FilePathManager.resolve("face/test_faces/brad-pitt-jennifer-aniston.jpg"))
+    face = cv2.imread(FilePathManager.resolve(
+        "face/test_faces/obama-and-trump.jpg"))
     print(model.predict(face))
