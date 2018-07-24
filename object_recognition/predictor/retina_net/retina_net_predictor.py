@@ -37,9 +37,9 @@ class RetinaNetPredictor(Predictor):
 
     def predict(self, image):
         image = self.convert_image(image)
-        image = image.float().cuda()
+        image = image
         with torch.no_grad():
-            scores, classification, transformed_anchors = self.model(image)
+            scores, classification, transformed_anchors = self.model(image.float().cuda())
             idxs = np.where(scores > 0.5)
             labels = [self.classes[int(classification[idxs[0][i]])] for i in range(idxs[0].shape[0])]
-            return labels
+            return labels, image, transformed_anchors, idxs

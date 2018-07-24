@@ -6,7 +6,7 @@ import skimage.transform
 import torch
 
 
-class Resizer(object):
+class Resizer:
 
     def __call__(self, sample, min_side=608, max_side=1024):
         image, annots = sample['img'], sample['annot']
