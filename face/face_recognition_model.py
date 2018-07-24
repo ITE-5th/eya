@@ -55,7 +55,8 @@ class FaceRecognitionModel:
     def remove_person(self, person_name):
         self.predictor.remove_person(person_name)
 
-    def show_result(self, image, predicted):
+    @staticmethod
+    def show_recognition_result(image, predicted):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         plt.cla()
         plt.axis("off")
@@ -77,7 +78,7 @@ class FaceRecognitionModel:
 
     def predict(self, face):
         predicted = self.predictor.predict_from_image(face)
-        self.show_result(face, predicted)
+        self.show_recognition_result(face, predicted)
         predicted = [x[0] for x in predicted]
         return ",".join(predicted)
 
