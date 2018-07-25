@@ -9,6 +9,7 @@ import server
 from face_recognition_model import FaceRecognitionModel
 from file_path_manager import FilePathManager
 from misc.converter import Converter
+from misc.printer import Printer
 from misc.receiver import Receiver
 from misc.sender import Sender
 from server.message.add_person_message import AddPersonMessage
@@ -136,6 +137,7 @@ class SocketRequestHandler:
                     message.image = Converter.to_image(message.image)
                     self.show_image(message.image)
                 try:
+                    Printer.print(message)
                     result = self.handle_message(message)
                 except Exception as e:
                     print(e)
@@ -143,7 +145,7 @@ class SocketRequestHandler:
                         "result": "error"
                     }
                 sender.send(result)
-                print(f"output: {result['result']}")
+                print(f"Output: {result['result']}")
         except:
             print("socket closed")
         finally:
