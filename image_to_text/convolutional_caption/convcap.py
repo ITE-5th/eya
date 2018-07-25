@@ -60,10 +60,10 @@ class AttentionLayer(nn.Module):
         return x, attn_scores
 
 
-class convcap(nn.Module):
+class Convcap(nn.Module):
 
     def __init__(self, num_wordclass, num_layers=1, is_attention=True, nfeats=512, dropout=.1):
-        super(convcap, self).__init__()
+        super().__init__()
         self.nimgfeats = 4096
         self.is_attention = is_attention
         self.nfeats = nfeats
@@ -84,7 +84,7 @@ class convcap(nn.Module):
         self.pad = self.kernel_size - 1
         for i in range(self.n_layers):
             self.convs.append(Conv1d(n_in, 2 * n_out, self.kernel_size, self.pad, dropout))
-            if (self.is_attention):
+            if self.is_attention:
                 self.attention.append(AttentionLayer(n_out, nfeats))
             n_in = n_out
 
@@ -105,7 +105,7 @@ class convcap(nn.Module):
 
         for i, conv in enumerate(self.convs):
 
-            if (i == 0):
+            if i == 0:
                 x = x.transpose(2, 1)
                 residual = self.resproj(x)
                 residual = residual.transpose(2, 1)
@@ -120,7 +120,7 @@ class convcap(nn.Module):
 
             x = F.glu(x, dim=1)
 
-            if (self.is_attention):
+            if self.is_attention:
                 attn = self.attention[i]
                 x = x.transpose(2, 1)
                 x, attn_buffer = attn(x, wordemb, imgsfeats)

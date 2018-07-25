@@ -9,7 +9,7 @@ from torchvision.transforms import transforms, Scale
 
 from file_path_manager import FilePathManager
 from image_to_text.convolutional_caption.beamsearch import beamsearch
-from image_to_text.convolutional_caption.convcap import convcap
+from image_to_text.convolutional_caption.convcap import Convcap
 from image_to_text.convolutional_caption.vggfeats import Vgg16Feats
 from image_to_text.predictor.predictor import Predictor
 
@@ -35,7 +35,7 @@ class ConvolutionalCaptionPredictor(Predictor):
         model_imgcnn = Vgg16Feats()
         model_imgcnn.cuda()
 
-        model_convcap = convcap(numwords, num_layers, is_attention=True)
+        model_convcap = Convcap(numwords, num_layers, is_attention=True)
         model_convcap.cuda()
         checkpoint = torch.load(FilePathManager.resolve("image_to_text/models/convolutional_caption-model.pth"))
         model_convcap.load_state_dict(checkpoint['state_dict'])
@@ -72,11 +72,13 @@ class ConvolutionalCaptionPredictor(Predictor):
         wordclass_feed = np.zeros((self.beam_size * 1, self.max_tokens), dtype='int64')
         wordclass_feed[:, 0] = self.wordlist.index('<S>')
         outcaps = np.empty((1, 0)).tolist()
-
+        attn_first = None
         for j in range(self.max_tokens - 1):
             wordclass = Variable(torch.from_numpy(wordclass_feed)).cuda()
 
             wordact, attn = self.model_convcap(imgfeats, imgfc7, wordclass)
+            if attn_first is None:
+                attn_first = attn
             wordact = wordact[:, :, :-1]
             wordact_j = wordact[..., j]
 
@@ -93,9 +95,10 @@ class ConvolutionalCaptionPredictor(Predictor):
                 imgfeats = imgfeats.index_select(0, Variable(torch.cuda.LongTensor(beam_indices)))
                 for i, wordclass_idx in enumerate(wordclass_indices):
                     wordclass_feed[i, j + 1] = wordclass_idx
-
-        num_words = len(outcaps[0])
-        if 'EOS' in outcaps[0]:
-            num_words = outcaps[0].index('EOS')
-        outcap = ' '.join(outcaps[0][:num_words])
-        return outcap
+        outcap = outcaps[0]
+        num_words = len(outcap)
+        if 'EOS' in outcap:
+            num_words = outcap.index('EOS')
+        outcap = ' '.join(outcap[:num_words])
+        attn_first = attn_first[0, :num_words]
+        return outcap, attn_first.cpu()
