@@ -47,7 +47,7 @@ class SimilarityPredictor:
             if sim > max_sim:
                 max_per = clz
                 max_sim = sim
-        return max_per.replace("_", " ").title() if max_sim >= self.threshold else EVM.UNKNOWN, max_sim
+        return max_per if max_sim >= self.threshold else EVM.UNKNOWN, max_sim
 
     def predict_from_image(self, image):
         faces, rects, _ = self.pipeline(image)
