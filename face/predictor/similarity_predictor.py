@@ -47,12 +47,11 @@ class SimilarityPredictor:
             if sim > max_sim:
                 max_per = clz
                 max_sim = sim
-
-        return max_per.replace("_", " ").title() if max_sim >= self.threshold else EVM.UNKNOWN
+        return max_per.replace("_", " ").title() if max_sim >= self.threshold else EVM.UNKNOWN, max_sim
 
     def predict_from_image(self, image):
         faces, rects, _ = self.pipeline(image)
-        return [(self.detect(faces[i]), rects[i]) for i in range(faces.shape[0])]
+        return [(*self.detect(faces[i]), rects[i]) for i in range(faces.shape[0])]
 
     def predict_from_path(self, path):
         return self.predict_from_image(cv2.imread(path))

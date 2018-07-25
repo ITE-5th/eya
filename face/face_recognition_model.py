@@ -14,6 +14,7 @@ from file_path_manager import FilePathManager
 
 warnings.filterwarnings("ignore")
 
+
 class ModelType(Enum):
     EVM = 0
     SIMILARITY = 1
@@ -63,7 +64,7 @@ class FaceRecognitionModel:
         plt.cla()
         plt.axis("off")
         plt.imshow(image)
-        for (name, rect) in predicted:
+        for (name, _, rect) in predicted:
             color = (random(), random(), random())
             x, y, w, h = rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top()
             rect = plt.Rectangle((x, y),
@@ -81,7 +82,7 @@ class FaceRecognitionModel:
     def predict(self, face):
         predicted = self.predictor.predict_from_image(face)
         self.show_recognition_result(face, predicted)
-        predicted = [x[0] for x in predicted]
+        predicted = [f"{x[0]} {x[1]}" for x in predicted]
         return ",".join(predicted)
 
 
