@@ -1,4 +1,5 @@
 import os
+import warnings
 from collections import Counter
 from random import random
 
@@ -12,6 +13,8 @@ from nltk.corpus import wordnet as wn
 from file_path_manager import FilePathManager
 from object_recognition.predictor.retina_net.retina_net_predictor import RetinaNetPredictor
 from transforms.unnormalizer import UnNormalizer
+
+warnings.filterwarnings("ignore")
 
 
 class ObjectRecognitionModel:

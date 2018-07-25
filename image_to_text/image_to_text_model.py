@@ -1,11 +1,15 @@
 import math
+import warnings
 
 import cv2
 import matplotlib.pyplot as plt
 import skimage
 from PIL import Image
 
+from file_path_manager import FilePathManager
 from image_to_text.predictor.convolutional_caption_predictor import ConvolutionalCaptionPredictor
+
+warnings.filterwarnings("ignore")
 
 
 class ImageToTextModel:
@@ -47,3 +51,9 @@ class ImageToTextModel:
         # self.show_attentions(image, caption, attns)
         caption = self.process_result(caption)
         return caption
+
+
+if __name__ == '__main__':
+    model = ImageToTextModel()
+    image = cv2.imread(FilePathManager.resolve("vqa/test_images/player.png"))
+    print(model.predict(image))

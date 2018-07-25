@@ -1,7 +1,11 @@
+import warnings
+
 import cv2
 
 from file_path_manager import FilePathManager
 from vqa.modified_model.predictor.predictor import Predictor
+
+warnings.filterwarnings("ignore")
 
 
 class VqaModel:

@@ -1,4 +1,5 @@
 import os
+import warnings
 from enum import Enum
 from random import random
 from shutil import copy2
@@ -11,6 +12,7 @@ from face.predictor.evm_predictor import EvmPredictor
 from face.predictor.similarity_predictor import SimilarityPredictor
 from file_path_manager import FilePathManager
 
+warnings.filterwarnings("ignore")
 
 class ModelType(Enum):
     EVM = 0
