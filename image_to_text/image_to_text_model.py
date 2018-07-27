@@ -3,8 +3,8 @@ import warnings
 
 import cv2
 import matplotlib.pyplot as plt
-import skimage
 from PIL import Image
+from skimage.transform import pyramid_expand
 
 from file_path_manager import FilePathManager
 from image_to_text.predictor.convolutional_caption_predictor import ConvolutionalCaptionPredictor
@@ -25,7 +25,7 @@ class ImageToTextModel:
         plt.subplot(4, 5, 1)
         plt.imshow(image)
         plt.axis('off')
-        words = caption.split(" ")
+        words = caption
         regions = int(math.sqrt(regions))
         upscale = 224 / regions
         for t in range(len(words)):
@@ -35,25 +35,38 @@ class ImageToTextModel:
             plt.text(0, 1, '%s' % (words[t]), color='black', backgroundcolor='white', fontsize=8)
             plt.imshow(image)
             alp_curr = alphas[t].view(regions, regions)
-            alp_img = skimage.transform.pyramid_expand(alp_curr.detach().numpy(), upscale=upscale, sigma=20)
+            alp_img = pyramid_expand(alp_curr.detach().numpy(), upscale=upscale, sigma=20)
             plt.imshow(alp_img, alpha=0.7)
             plt.axis('off')
         plt.show()
 
     @staticmethod
+    def replace_repeating(caption):
+        current_word = ""
+        result = []
+        for x in caption:
+            if current_word != x:
+                result.append(x)
+                current_word = x
+        return result
+
+    @staticmethod
     def process_result(caption):
-        caption = caption.replace("<unk>", " ")
-        # caption = re.sub(r'(.+) \1+', r'\1', caption)
+        caption = [x for x in caption if x != "<unk>"]
+        caption = ImageToTextModel.replace_repeating(caption)
+        if caption[len(caption) - 1] in ["and", "or", "a", "an", "the"]:
+            caption = caption[:-1]
         return caption
 
     def predict(self, image):
         caption, attns = self.predictor.predict(image)
-        # self.show_attentions(image, caption, attns)
+        self.show_attentions(image, caption, attns)
         caption = self.process_result(caption)
+        caption = " ".join(caption)
         return caption
 
 
 if __name__ == '__main__':
     model = ImageToTextModel()
-    image = cv2.imread(FilePathManager.resolve("vqa/test_images/player.png"))
+    image = cv2.imread(FilePathManager.resolve("vqa/test_images/girl_with_umbrella.jpg"))
     print(model.predict(image))

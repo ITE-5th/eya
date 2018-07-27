@@ -21,7 +21,7 @@ def remove_module(state):
 def modify_state_dict(state):
     new_state = {}
     for k, v in state.items():
-        if len(v.size()) == 1 and v.size(0) == 1:
+        if k != "v_att.linear.bias" and len(v.size()) == 1 and v.size(0) == 1:
             new_state[k] = torch.tensor(state[k][0])
         else:
             new_state[k] = state[k]

@@ -72,13 +72,9 @@ class ConvolutionalCaptionPredictor(Predictor):
         wordclass_feed = np.zeros((self.beam_size * 1, self.max_tokens), dtype='int64')
         wordclass_feed[:, 0] = self.wordlist.index('<S>')
         outcaps = np.empty((1, 0)).tolist()
-        attn_first = None
         for j in range(self.max_tokens - 1):
             wordclass = Variable(torch.from_numpy(wordclass_feed)).cuda()
-
             wordact, attn = self.model_convcap(imgfeats, imgfc7, wordclass)
-            if attn_first is None:
-                attn_first = attn
             wordact = wordact[:, :, :-1]
             wordact_j = wordact[..., j]
 
@@ -99,6 +95,6 @@ class ConvolutionalCaptionPredictor(Predictor):
         num_words = len(outcap)
         if 'EOS' in outcap:
             num_words = outcap.index('EOS')
-        outcap = ' '.join(outcap[:num_words])
-        attn_first = attn_first[0, :num_words]
-        return outcap, attn_first.cpu()
+        outcap = outcap[:num_words]
+        attn = attn[0, :num_words].cpu()
+        return outcap, attn

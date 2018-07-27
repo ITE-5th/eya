@@ -65,6 +65,7 @@ class FaceRecognitionModel:
         plt.axis("off")
         plt.imshow(image)
         for (name, _, rect) in predicted:
+            name = name.replace("_", " ").title()
             color = (random(), random(), random())
             x, y, w, h = rect.left(), rect.top(), rect.right() - rect.left(), rect.bottom() - rect.top()
             rect = plt.Rectangle((x, y),
