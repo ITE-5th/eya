@@ -145,7 +145,7 @@ class SocketRequestHandler:
                         "result": "error"
                     }
                 sender.send(result)
-                print(f"Output: {result['result']}")
+                print(f"The result is: {result['result']}")
         except:
             print("socket closed")
         finally:
