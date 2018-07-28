@@ -38,7 +38,6 @@ class SocketLocalServer:
     def handle_socket(self, sock):
         while True:
             client_socket, address = sock.accept()
-            print('Accepted connection from {}:{}'.format(address[0], address[1]))
             client_handler = threading.Thread(
                 target=self.handle_client_connection,
                 args=(client_socket,)
@@ -46,8 +45,12 @@ class SocketLocalServer:
             client_handler.start()
 
     def start(self):
-        print(
-            f"vqa port = {self.vqa_port}, itt port = {self.image_to_text_port}, object recognition port = {self.object_recognition_port}, face recognition port = {self.face_recognition_port}")
+        print("\n" * 6)
+        print("-" * 155)
+        print("Started")
+        print("-" * 155)
+        print()
+        print()
         vqa_thread = threading.Thread(target=self.handle_socket, args=(self.vqa_socket,))
         image_to_text_thread = threading.Thread(target=self.handle_socket, args=(self.image_to_text_socket,))
         object_recognition_thread = threading.Thread(target=self.handle_socket, args=(self.object_recognition_socket,))

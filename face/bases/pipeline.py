@@ -24,5 +24,6 @@ class Pipeline(object):
         if verbose:
             logger.log()
             print("Pipeline: {} stages, time {}".format(i + 1, logger))
-
+        if len(output) < 3:
+            output = output[0], output[1], None
         return output

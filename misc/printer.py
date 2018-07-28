@@ -24,7 +24,7 @@ class Printer:
     @staticmethod
     def handle_type(message):
         if isinstance(message, VqaMessage):
-            print(f"We will answer: {message.question}")
+            print(f"We will answer: {message.question}?")
         if isinstance(message, EndAddPersonMessage):
             name = message.name.replace("_", " ").title()
             print(f"We will add {name}")
@@ -33,7 +33,7 @@ class Printer:
             print(f"We will remove {name}")
         if isinstance(message, ObjectRecognitionMessage):
             if message.object_name is not None and message.object_name != "":
-                print(f"We will count {message.object_name}")
+                print(f"We will count {message.object_name.strip()}")
             else:
                 print("We will count everything")
 

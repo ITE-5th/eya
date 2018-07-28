@@ -82,13 +82,14 @@ class FaceRecognitionModel:
 
     def predict(self, face):
         predicted = self.predictor.predict_from_image(face)
-        self.show_recognition_result(face, predicted)
-        predicted = [f"{x[0]} {x[1]}" for x in predicted]
+        if len(predicted) != 0:
+            self.show_recognition_result(face, predicted)
+            predicted = [f"{x[0]} {x[1]}" for x in predicted]
         return ",".join(predicted)
 
 
 if __name__ == '__main__':
     model = FaceRecognitionModel("zaher")
     face = cv2.imread(FilePathManager.resolve(
-        "face/test_faces/obama-and-trump.jpg"))
+        "face/test_faces/captured.jpg"))
     print(model.predict(face))
