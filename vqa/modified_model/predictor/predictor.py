@@ -54,14 +54,17 @@ class Predictor:
         self.k = k
 
     def predict_from_image(self, question, image):
-        spatial_features, image_features = ImageFeaturesExtractor.extract_from_image(image)
-        padding = VQAFeatureDataset.pad_question(question, dictionary)
-        question = Variable(torch.LongTensor(padding).unsqueeze(0))
-        image_features = Variable(torch.FloatTensor(image_features).unsqueeze(0))
-        spatial_features = Variable(torch.FloatTensor(spatial_features).unsqueeze(0))
-        result = self.predict_from_models(image_features, spatial_features, question)
-        values, indices = result.topk(self.k)
-        return [(str(label2ans[i]), value.item()) for i, value in zip(indices, values)]
+        try:
+            padding = VQAFeatureDataset.pad_question(question, dictionary)
+            spatial_features, image_features = ImageFeaturesExtractor.extract_from_image(image)
+            question = Variable(torch.LongTensor(padding).unsqueeze(0))
+            image_features = Variable(torch.FloatTensor(image_features).unsqueeze(0))
+            spatial_features = Variable(torch.FloatTensor(spatial_features).unsqueeze(0))
+            result = self.predict_from_models(image_features, spatial_features, question)
+            values, indices = result.topk(self.k)
+            return [(str(label2ans[i]), value.item()) for i, value in zip(indices, values)]
+        except Exception:
+            return "I can't answer this question because it contains some unknown words for me"
 
     @staticmethod
     def predict_from_models(image_features, spatial_features, question):
